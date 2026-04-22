@@ -3,257 +3,120 @@ from fastapi.responses import HTMLResponse
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
+import json
+import time
 
 app = FastAPI()
 
-@app.get("/", response_class=HTMLResponse)
-def home():
-    # INDENTED HERE
-    return """
-    <style>
-    @import url('[https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap](https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap)');
-
-    body {
-      margin: 0;
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #0f172a, #1e293b);
-      color: white;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: 60px auto;
-      padding: 30px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 16px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-      text-align: center;
-    }
-
-    .brand {
-      color: #94a3b8;
-      font-size: 13px;
-      margin-bottom: 20px;
-    }
-
-    input {
-      padding: 12px;
-      width: 65%;
-      border-radius: 8px;
-      border: none;
-      margin-right: 10px;
-    }
-
-    button {
-      padding: 12px 20px;
-      background: linear-gradient(135deg, #3b82f6, #06b6d4);
-      border: none;
-      border-radius: 8px;
-      color: white;
-      cursor: pointer;
-    }
-
-    .card {
-      margin-bottom: 10px;
-      padding: 12px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 6px;
-    }
-
-    .score {
-      font-size: 22px;
-      font-weight: bold;
-      background: linear-gradient(135deg, #22c55e, #4ade80);
-      padding: 10px;
-      border-radius: 8px;
-      color: #022c22;
-      text-align: center;
-      margin-bottom: 15px;
-    }
-    </style>
-
-    <div class="container">
-      <h1>SEO Analyzer <span style="color:#3b82f6;">Pro</span></h1>
-      <div class="brand">Built by Yousaf Saneen</div>
-
-      <input id='url' placeholder='Enter website URL'>
-      <button onclick='run()'>Analyze</button>
-
-      <div id='out'></div>
-    </div>
-
-    <script>
-    async function run(){
-      let url = document.getElementById('url').value;
-
-      document.getElementById('out').innerHTML =
-        '<div class="card">Analyzing... detecting site type</div>';
-
-      let res = await fetch(`/analyze?url=${url}`);
-      let data = await res.json();
-
-      if (data.error) {
-        document.getElementById('out').innerHTML =
-          `<div class="card" style="color:red;">${data.error}</div>`;
-        return;
-      }
-
-      document.getElementById('out').innerHTML = `
-        <div class="score">SEO Score: ${data.score}/100</div>
-
-        <div class="card"><b>Title:</b> ${data.title}</div>
-        <div class="card"><b>Meta:</b> ${data.meta_description}</div>
-        <div class="card"><b>H1:</b> ${data.h1}</div>
-
-        <div class="card"><b>Word Count:</b> ${data.word_count}</div>
-
-        <div class="card"><b>Images:</b> ${data.images}</div>
-        <div class="card"><b>Missing ALT:</b> ${data.missing_alt_count}</div>
-
-        ${data.missing_alt_images.length ? `
-        <div class="card">
-        <b>Images Missing ALT:</b><br>
-        ${data.missing_alt_images.map(i => `<div>• ${i}</div>`).join("")}
-        </div>` : ""}
-
-        <div class="card">
-        <b>Internal Links:</b><br>
-        ${data.internal_links.map(l => `<div>• ${l}</div>`).join("")}
-        </div>
-
-        <div class="card">
-        <b>External Links:</b><br>
-        ${data.external_links.map(l => `<div>• ${l}</div>`).join("")}
-        </div>
-
-        <div class="card"><b>Issues:</b> ${
-          data.issues.length ? data.issues.join(", ") : "No major issues"
-        }</div>
-      `;
-    }
-    </script>
-    """
+# ... [Keep your existing HTML frontend code here, but you will want to add more UI cards for the new data] ...
 
 @app.get("/analyze")
 def analyze(url: str):
-    # INDENTED HERE
     try:
-        # INDENTED HERE
-        headers = {"User-Agent": "Mozilla/5.0"}
-
-        # STEP 1: Normal request
-        r = requests.get(url, headers=headers, timeout=10)
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"}
+        
+        # Track response time for basic performance metric
+        start_time = time.time()
+        r = requests.get(url, headers=headers, timeout=15, allow_redirects=True)
+        load_time = round(time.time() - start_time, 2)
+        
+        status_code = r.status_code
+        final_url = r.url # Check for redirects
+        
         soup = BeautifulSoup(r.text, "html.parser")
 
+        # Extract structured data before stripping scripts
+        schema_markup = []
+        for script in soup.find_all("script", type="application/ld+json"):
+            try:
+                schema_markup.append(json.loads(script.string))
+            except:
+                pass
+
+        # Strip scripts and styles for text analysis
         for s in soup(["script", "style", "noscript"]):
             s.extract()
 
         text = soup.get_text(separator=" ")
         words = [w for w in text.split() if len(w) > 2]
+        
+        # Playwright fallback logic (Keep your existing Step 2 here if word count is low)
+        # ... [Your Playwright Code] ...
 
-        # STEP 2: AUTO SWITCH (JS DETECTION)
-        if len(words) < 200:
-            try:
-                from playwright.sync_api import sync_playwright
-
-                with sync_playwright() as p:
-                    browser = p.chromium.launch(headless=True)
-                    page = browser.new_page()
-                    page.goto(url, timeout=60000)
-                    page.wait_for_timeout(3000)
-
-                    html = page.content()
-                    browser.close()
-
-                soup = BeautifulSoup(html, "html.parser")
-
-                for s in soup(["script", "style", "noscript"]):
-                    s.extract()
-
-                text = soup.get_text(separator=" ")
-                words = [w for w in text.split() if len(w) > 2]
-
-            except Exception as inner_e:
-                # Good practice to catch specific exceptions or log them
-                print(f"Playwright fallback failed: {inner_e}")
-
-        # Title
+        # --- ADVANCED SEO METRICS ---
+        
+        # 1. Technical Tags
         title = soup.title.string.strip() if soup.title and soup.title.string else "No title"
+        meta_desc_tag = soup.find("meta", attrs={"name": "description"})
+        meta_desc = meta_desc_tag["content"].strip() if meta_desc_tag and meta_desc_tag.get("content") else "No meta description"
+        
+        canonical_tag = soup.find("link", rel="canonical")
+        canonical = canonical_tag["href"] if canonical_tag and canonical_tag.get("href") else "Missing"
+        
+        robots_tag = soup.find("meta", attrs={"name": "robots"})
+        meta_robots = robots_tag["content"] if robots_tag and robots_tag.get("content") else "Index, Follow (Default)"
 
-        # Meta
-        meta = soup.find("meta", attrs={"name": "description"})
-        meta_desc = meta["content"].strip() if meta and meta.get("content") else "No meta description"
+        viewport_tag = soup.find("meta", attrs={"name": "viewport"})
+        has_viewport = bool(viewport_tag)
 
-        # H1
-        h1_tags = soup.find_all("h1")
-        h1_text = h1_tags[0].get_text(strip=True) if h1_tags else "No H1"
+        # 2. Heading Hierarchy
+        h1_tags = [h.get_text(strip=True) for h in soup.find_all("h1")]
+        h2_tags = [h.get_text(strip=True) for h in soup.find_all("h2")]
+        h3_tags = [h.get_text(strip=True) for h in soup.find_all("h3")]
 
-        word_count = len(words)
+        # 3. Open Graph / Social Tags
+        og_title = soup.find("meta", property="og:title")
+        og_image = soup.find("meta", property="og:image")
+        has_open_graph = bool(og_title and og_image)
 
-        # Images
+        # 4. Images & Alt Text
         images = soup.find_all("img")
-        missing_alt = []
+        missing_alt = [urljoin(url, img.get("src")) for img in images if img.get("src") and not img.get("src").startswith("data:") and not img.get("alt")]
 
-        for img in images:
-            src = img.get("src")
-
-            if not src or src.startswith("data:image"):
-                continue
-
-            if not img.get("alt"):
-                missing_alt.append(urljoin(url, src))
-
-        # Links
+        # 5. Links
         links = soup.find_all("a", href=True)
-
         internal_links = set()
         external_links = set()
-
         for l in links:
             href = l.get("href")
-
-            if not href:
-                continue
-
             if href.startswith("/") or url in href:
                 internal_links.add(urljoin(url, href))
             elif href.startswith("http"):
                 external_links.add(href)
 
-        # Issues
+        # --- ADVANCED ISSUE DETECTION ---
         issues = []
+        if status_code >= 400: issues.append(f"Page returned HTTP {status_code}")
+        if url != final_url: issues.append(f"Page redirects to {final_url}")
+        if len(h1_tags) == 0: issues.append("Missing H1 Tag")
+        if len(h1_tags) > 1: issues.append("Multiple H1 Tags found (Best practice is 1)")
+        if canonical == "Missing": issues.append("Missing Canonical Tag")
+        if not has_viewport: issues.append("Missing Mobile Viewport Tag")
+        if "noindex" in meta_robots.lower(): issues.append("Page is blocked from indexing (noindex)")
+        if len(title) < 30 or len(title) > 60: issues.append("Title length is not optimal (Aim for 30-60 chars)")
+        if load_time > 3.0: issues.append(f"Slow load time ({load_time}s)")
+        if len(missing_alt) > 0: issues.append(f"{len(missing_alt)} images missing alt text")
 
-        if len(title) < 30:
-            issues.append("Title too short")
-
-        if meta_desc == "No meta description":
-            issues.append("Missing meta description")
-
-        if not h1_tags:
-            issues.append("Missing H1")
-
-        if len(missing_alt) > 0:
-            issues.append(f"{len(missing_alt)} images missing alt")
-
-        if word_count < 300:
-            issues.append("Thin content")
-
-        score = max(10, 100 - len(issues) * 8)
+        # Dynamic Scoring
+        score = max(0, 100 - (len(issues) * 5))
 
         return {
-            "title": title,
-            "meta_description": meta_desc,
-            "h1": h1_text,
-            "word_count": word_count,
-            "images": len(images),
-            "missing_alt_count": len(missing_alt),
-            "missing_alt_images": missing_alt[:10],
-            "internal_links": list(internal_links)[:10],
-            "external_links": list(external_links)[:10],
+            "performance": {"status_code": status_code, "load_time_seconds": load_time},
+            "indexing": {"canonical": canonical, "meta_robots": meta_robots},
+            "content": {
+                "title": title,
+                "meta_description": meta_desc,
+                "word_count": len(words),
+                "h1_count": len(h1_tags),
+                "h2_count": len(h2_tags),
+            },
+            "social": {"has_open_graph": has_open_graph},
+            "schema_detected": len(schema_markup) > 0,
+            "images": {"total": len(images), "missing_alt": len(missing_alt)},
+            "links": {"internal": len(internal_links), "external": len(external_links)},
             "score": score,
             "issues": issues
         }
 
     except Exception as e:
-        # INDENTED HERE
         return {"error": str(e)}
