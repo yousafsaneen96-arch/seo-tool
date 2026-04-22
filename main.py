@@ -27,6 +27,7 @@ def home():
     .issues-list { color: #fca5a5; }
     .keyword-badge { display: inline-block; background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; padding: 4px 10px; border-radius: 20px; margin: 4px; font-size: 13px; }
     .keyword-density { color: #9ca3af; font-size: 11px; margin-left: 4px; }
+    .phrase-header { margin-top: 15px; font-size: 14px; font-weight: 600; border-bottom: 1px solid #334155; padding-bottom: 4px; margin-bottom: 8px; color: #cbd5e1; }
     </style>
 
     <div class="container">
@@ -40,11 +41,20 @@ def home():
     </div>
 
     <script>
+    const renderBadges = (arr) => {
+        if (!arr || arr.length === 0) return "<span style='font-size:13px; color:#64748b; margin-left:4px;'>None found</span>";
+        return arr.map(k => `
+            <div class="keyword-badge">
+                <b>${k.phrase}</b> <span class="keyword-density">(${k.count}x - ${k.density}%)</span>
+            </div>
+        `).join("");
+    };
+
     async function run(){
       let url = document.getElementById('url').value;
 
       document.getElementById('out').innerHTML = 
-        '<div class="card" style="text-align:center;">Analyzing site & extracting keywords... please wait.</div>';
+        '<div class="card" style="text-align:center;">Analyzing site & extracting phrases... please wait.</div>';
 
       try {
           let res = await fetch(`/analyze?url=${url}`);
@@ -63,14 +73,19 @@ def home():
             <div class="card"><b>Meta Description:</b> ${data.content.meta_description}</div>
             
             <div class="card">
-                <b style="color:#3b82f6;">Top Keywords & Density:</b><br>
-                <div style="margin-top:10px;">
-                    ${data.keywords.length ? data.keywords.map(k => `
-                        <div class="keyword-badge">
-                            <b>${k.word}</b> <span class="keyword-density">(${k.count} times - ${k.density}%)</span>
-                        </div>
-                    `).join("") : "No significant keywords found."}
-                </div>
+                <b style="color:#3b82f6; font-size:16px;">Keyword & Phrase Density:</b><br>
+                
+                <div class="phrase-header">1-Word Keywords</div>
+                <div>${renderBadges(data.keywords.top_1)}</div>
+
+                <div class="phrase-header">2-Word Phrases</div>
+                <div>${renderBadges(data.keywords.top_2)}</div>
+
+                <div class="phrase-header">3-Word Phrases</div>
+                <div>${renderBadges(data.keywords.top_3)}</div>
+
+                <div class="phrase-header">4-Word Phrases</div>
+                <div>${renderBadges(data.keywords.top_4)}</div>
             </div>
 
             <div class="card">
@@ -119,6 +134,7 @@ def analyze(url: str):
         # Google API Check
         google_score = "Checking..."
         try:
+            # REMEMBER TO PASTE YOUR REAL API KEY HERE!
             google_api = f"https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url={url}&strategy=mobile&key=AIzaSyAJSIWD5LTnZK_yC4mKeyxw76COHxdESPU"
             google_req = requests.get(google_api, timeout=40)
             if google_req.status_code == 200:
@@ -134,23 +150,44 @@ def analyze(url: str):
 
         text = soup.get_text(separator=" ")
         
-        # --- NEW STEP: KEYWORD DENSITY EXTRACTOR ---
-        # 1. Clean the text: convert to lowercase and grab only actual words
-        raw_words = re.findall(r'\b[a-z]{3,}\b', text.lower())
+        # --- NEW STEP: ADVANCED PHRASE EXTRACTOR ---
+        text_lower = text.lower()
+        # Grab all words that are at least 2 characters long
+        raw_words = re.findall(r'\b[a-z]{2,}\b', text_lower)
+        total_words = len(raw_words) if len(raw_words) > 0 else 1 # Prevent divide by zero error
         
-        # 2. Ignore common filler words (Stopwords)
-        stopwords = {"the", "and", "for", "that", "this", "with", "from", "your", "are", "have", "not", "can", "you", "all", "was", "but", "our", "out", "has", "about", "what", "how", "will", "more", "their", "any", "which", "some", "they", "get"}
-        
-        # 3. Filter the words
+        # Expanded stopword list to filter out useless phrases
+        stopwords = {"a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for", "with", "about", "by", "from", "of", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "do", "does", "did", "will", "would", "shall", "should", "can", "could", "may", "might", "must", "it", "this", "that", "these", "those", "which", "who", "whom", "whose", "what", "how", "why", "where", "when", "we", "you", "they", "he", "she", "your", "our", "their", "my", "his", "her", "its", "not", "no", "all", "any", "some", "more", "most", "other", "such", "only", "own", "same", "so", "than", "too", "very", "one", "two", "also", "if", "then", "as", "out", "up", "down", "into", "over", "after"}
+
+        def get_top_phrases(words, n, top_k=8):
+            if len(words) < n: return []
+            phrases = []
+            for i in range(len(words) - n + 1):
+                phrase_words = words[i:i+n]
+                # Skip the phrase if it STARTS or ENDS with a stopword (e.g. skips "in abu dhabi" but keeps "abu dhabi")
+                if phrase_words[0] in stopwords or phrase_words[-1] in stopwords:
+                    continue
+                phrases.append(" ".join(phrase_words))
+            
+            counts = Counter(phrases)
+            result = []
+            for phrase, count in counts.most_common(top_k):
+                if count > 1: # Only show phrases that are used more than once
+                    # Calculate how much of the page this phrase takes up
+                    density = round((count * n / total_words) * 100, 2)
+                    result.append({"phrase": phrase, "count": count, "density": density})
+            return result
+
         meaningful_words = [w for w in raw_words if w not in stopwords]
-        total_meaningful = len(meaningful_words)
-        
-        # 4. Count and calculate percentage
         word_counts = Counter(meaningful_words)
-        top_keywords = []
-        for word, count in word_counts.most_common(10): # Get top 10 words
-            density = round((count / total_meaningful) * 100, 2) if total_meaningful > 0 else 0
-            top_keywords.append({"word": word, "count": count, "density": density})
+        top_1 = [{"phrase": w, "count": c, "density": round((c / total_words) * 100, 2)} for w, c in word_counts.most_common(12) if c > 1]
+        
+        top_keywords = {
+            "top_1": top_1,
+            "top_2": get_top_phrases(raw_words, 2, 8),
+            "top_3": get_top_phrases(raw_words, 3, 8),
+            "top_4": get_top_phrases(raw_words, 4, 8)
+        }
         # ---------------------------------------------
 
         words = [w for w in text.split() if len(w) > 2]
@@ -185,10 +222,9 @@ def analyze(url: str):
         if "noindex" in meta_robots.lower(): issues.append("Page is blocked from indexing")
         if len(missing_alt) > 0: issues.append(f"{len(missing_alt)} images missing alt text")
 
-        # Added keyword stuffing check to issues
-        for kw in top_keywords:
-            if kw["density"] > 5.0:  # If a word is over 5% of the page text
-                issues.append(f"Possible keyword stuffing: '{kw['word']}' has a density of {kw['density']}%")
+        for kw in top_keywords["top_1"]:
+            if kw["density"] > 5.0:  
+                issues.append(f"Possible keyword stuffing: '{kw['phrase']}' has a density of {kw['density']}%")
 
         score = max(0, 100 - (len(issues) * 5))
 
