@@ -5,6 +5,8 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import json
 import time
+import re
+from collections import Counter
 
 app = FastAPI()
 
@@ -19,10 +21,12 @@ def home():
     .brand { color: #94a3b8; font-size: 13px; margin-bottom: 20px; }
     input { padding: 12px; width: 65%; border-radius: 8px; border: none; margin-right: 10px; }
     button { padding: 12px 20px; background: linear-gradient(135deg, #3b82f6, #06b6d4); border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: 600; }
-    .card { margin-bottom: 10px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 6px; text-align: left; }
+    .card { margin-bottom: 10px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 6px; text-align: left; }
     .score { font-size: 22px; font-weight: bold; background: linear-gradient(135deg, #22c55e, #4ade80); padding: 10px; border-radius: 8px; color: #022c22; text-align: center; margin-bottom: 15px; }
     .google-score { font-size: 18px; font-weight: bold; background: linear-gradient(135deg, #f59e0b, #fbbf24); padding: 10px; border-radius: 8px; color: #451a03; text-align: center; margin-bottom: 15px; }
     .issues-list { color: #fca5a5; }
+    .keyword-badge { display: inline-block; background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; padding: 4px 10px; border-radius: 20px; margin: 4px; font-size: 13px; }
+    .keyword-density { color: #9ca3af; font-size: 11px; margin-left: 4px; }
     </style>
 
     <div class="container">
@@ -40,7 +44,7 @@ def home():
       let url = document.getElementById('url').value;
 
       document.getElementById('out').innerHTML = 
-        '<div class="card" style="text-align:center;">Analyzing website & asking Google for performance data... please wait 10-15 seconds.</div>';
+        '<div class="card" style="text-align:center;">Analyzing site & extracting keywords... please wait.</div>';
 
       try {
           let res = await fetch(`/analyze?url=${url}`);
@@ -59,6 +63,17 @@ def home():
             <div class="card"><b>Meta Description:</b> ${data.content.meta_description}</div>
             
             <div class="card">
+                <b style="color:#3b82f6;">Top Keywords & Density:</b><br>
+                <div style="margin-top:10px;">
+                    ${data.keywords.length ? data.keywords.map(k => `
+                        <div class="keyword-badge">
+                            <b>${k.word}</b> <span class="keyword-density">(${k.count} times - ${k.density}%)</span>
+                        </div>
+                    `).join("") : "No significant keywords found."}
+                </div>
+            </div>
+
+            <div class="card">
                 <b>Server Performance:</b> Load Time: ${data.performance.load_time_seconds}s | Status Code: ${data.performance.status_code}
             </div>
             
@@ -72,13 +87,6 @@ def home():
             
             <div class="card">
                 <b>Links:</b> ${data.links.internal} internal | ${data.links.external} external
-            </div>
-
-            <div class="card">
-                <b>Advanced Tags:</b> 
-                Canonical: ${data.indexing.canonical} | 
-                Robots: ${data.indexing.meta_robots} | 
-                Schema Markup: ${data.schema_detected ? "Yes" : "No"}
             </div>
 
             <div class="card issues-list">
@@ -108,51 +116,45 @@ def analyze(url: str):
         
         soup = BeautifulSoup(r.text, "html.parser")
 
-        # --- NEW STEP: TALKING TO GOOGLE ---
+        # Google API Check
         google_score = "Checking..."
         try:
-            # We ping Google's free API for this specific URL
             google_api = f"https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url={url}&strategy=mobile&key=AIzaSyAJSIWD5LTnZK_yC4mKeyxw76COHxdESPU"
             google_req = requests.get(google_api, timeout=40)
             if google_req.status_code == 200:
-                api_data = google_req.json()
-                # Google gives a score like 0.95, so we multiply by 100 to get 95
-                raw_score = api_data["lighthouseResult"]["categories"]["performance"]["score"]
+                raw_score = google_req.json()["lighthouseResult"]["categories"]["performance"]["score"]
                 google_score = int(raw_score * 100)
             else:
-                google_score = "Failed to fetch"
-        except Exception as e:
+                google_score = "Failed"
+        except Exception:
             google_score = "Timeout"
-        # -----------------------------------
-
-        schema_markup = []
-        for script in soup.find_all("script", type="application/ld+json"):
-            try: schema_markup.append(json.loads(script.string))
-            except: pass
 
         for s in soup(["script", "style", "noscript"]):
             s.extract()
 
         text = soup.get_text(separator=" ")
+        
+        # --- NEW STEP: KEYWORD DENSITY EXTRACTOR ---
+        # 1. Clean the text: convert to lowercase and grab only actual words
+        raw_words = re.findall(r'\b[a-z]{3,}\b', text.lower())
+        
+        # 2. Ignore common filler words (Stopwords)
+        stopwords = {"the", "and", "for", "that", "this", "with", "from", "your", "are", "have", "not", "can", "you", "all", "was", "but", "our", "out", "has", "about", "what", "how", "will", "more", "their", "any", "which", "some", "they", "get"}
+        
+        # 3. Filter the words
+        meaningful_words = [w for w in raw_words if w not in stopwords]
+        total_meaningful = len(meaningful_words)
+        
+        # 4. Count and calculate percentage
+        word_counts = Counter(meaningful_words)
+        top_keywords = []
+        for word, count in word_counts.most_common(10): # Get top 10 words
+            density = round((count / total_meaningful) * 100, 2) if total_meaningful > 0 else 0
+            top_keywords.append({"word": word, "count": count, "density": density})
+        # ---------------------------------------------
+
         words = [w for w in text.split() if len(w) > 2]
         
-        if len(words) < 200:
-            try:
-                from playwright.sync_api import sync_playwright
-                with sync_playwright() as p:
-                    browser = p.chromium.launch(headless=True)
-                    page = browser.new_page()
-                    page.goto(url, timeout=60000)
-                    page.wait_for_timeout(3000)
-                    html = page.content()
-                    browser.close()
-                soup = BeautifulSoup(html, "html.parser")
-                for s in soup(["script", "style", "noscript"]): s.extract()
-                text = soup.get_text(separator=" ")
-                words = [w for w in text.split() if len(w) > 2]
-            except Exception as inner_e:
-                print(f"Fallback failed: {inner_e}")
-
         title = soup.title.string.strip() if soup.title and soup.title.string else "No title"
         meta_desc_tag = soup.find("meta", attrs={"name": "description"})
         meta_desc = meta_desc_tag["content"].strip() if meta_desc_tag and meta_desc_tag.get("content") else "No meta description"
@@ -183,6 +185,11 @@ def analyze(url: str):
         if "noindex" in meta_robots.lower(): issues.append("Page is blocked from indexing")
         if len(missing_alt) > 0: issues.append(f"{len(missing_alt)} images missing alt text")
 
+        # Added keyword stuffing check to issues
+        for kw in top_keywords:
+            if kw["density"] > 5.0:  # If a word is over 5% of the page text
+                issues.append(f"Possible keyword stuffing: '{kw['word']}' has a density of {kw['density']}%")
+
         score = max(0, 100 - (len(issues) * 5))
 
         return {
@@ -190,7 +197,7 @@ def analyze(url: str):
             "performance": {"status_code": status_code, "load_time_seconds": load_time},
             "indexing": {"canonical": canonical, "meta_robots": meta_robots},
             "content": {"title": title, "meta_description": meta_desc, "word_count": len(words), "h1_count": len(h1_tags), "h2_count": len(h2_tags)},
-            "schema_detected": len(schema_markup) > 0,
+            "keywords": top_keywords,
             "images": {"total": len(images), "missing_alt": len(missing_alt)},
             "links": {"internal": len(internal_links), "external": len(external_links)},
             "score": score,
