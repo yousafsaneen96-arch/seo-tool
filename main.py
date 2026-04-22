@@ -112,7 +112,7 @@ def analyze(url: str):
         google_score = "Checking..."
         try:
             # We ping Google's free API for this specific URL
-            google_api = f"https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url={url}&strategy=mobile"
+            google_api = f"https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url={url}&strategy=mobile&key=AIzaSyAJSIWD5LTnZK_yC4mKeyxw76COHxdESPU"
             google_req = requests.get(google_api, timeout=15)
             if google_req.status_code == 200:
                 api_data = google_req.json()
