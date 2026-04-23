@@ -145,47 +145,53 @@ def analyze(url: str):
         except Exception:
             google_score = "Timeout"
 
-        # Remove scripts and styles
         for s in soup(["script", "style", "noscript"]):
             s.extract()
 
-        # --- THE FIX: BOUNDARY-AWARE PHRASE EXTRACTOR ---
-        # 1. Use \n instead of space so menu items stay separated
         raw_text_blocks = soup.get_text(separator="\n")
         
-        # Expanded stopword list with boilerplate words added
         stopwords = {"a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for", "with", "about", "by", "from", "of", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "do", "does", "did", "will", "would", "shall", "should", "can", "could", "may", "might", "must", "it", "this", "that", "these", "those", "which", "who", "whom", "whose", "what", "how", "why", "where", "when", "we", "you", "they", "he", "she", "your", "our", "their", "my", "his", "her", "its", "not", "no", "all", "any", "some", "more", "most", "other", "such", "only", "own", "same", "so", "than", "too", "very", "one", "two", "also", "if", "then", "as", "out", "up", "down", "into", "over", "after", "us", "home", "faq", "login", "contact", "read"}
 
-        # We need the total word count for density math
         all_words_list = re.findall(r'\b[a-z]{2,}\b', raw_text_blocks.lower())
         total_words = max(len(all_words_list), 1)
 
-        # Storage for our phrase counts
         phrase_counts = {1: Counter(), 2: Counter(), 3: Counter(), 4: Counter()}
 
-        # 2. Process the text LINE BY LINE to stop "Navigation Bleed"
+        # --- NEW: REGIONAL ENTITY MERGER ---
+        # Add any multi-word phrases here that you want treated as 1 word
+        regional_entities = {
+            "abu dhabi": "abudhabi",
+            "saudi arabia": "saudiarabia",
+            "new york": "newyork",
+            "sri lanka": "srilanka"
+        }
+        # -----------------------------------
+
         for line in raw_text_blocks.split('\n'):
-            words_in_line = re.findall(r'\b[a-z]{2,}\b', line.lower())
+            clean_line = line.lower()
+            
+            # Glue the words together before the regex splits them
+            for region, merged in regional_entities.items():
+                clean_line = clean_line.replace(region, merged)
+                
+            words_in_line = re.findall(r'\b[a-z]{2,}\b', clean_line)
             if not words_in_line: continue
             
-            # Count 1-word keywords
             for w in words_in_line:
                 if w not in stopwords:
                     phrase_counts[1][w] += 1
                     
-            # Count 2, 3, and 4-word phrases ONLY within this specific line
             for n in [2, 3, 4]:
                 if len(words_in_line) >= n:
                     for i in range(len(words_in_line) - n + 1):
                         ngram = words_in_line[i:i+n]
-                        # Don't save phrases that start or end with a stopword
                         if ngram[0] not in stopwords and ngram[-1] not in stopwords:
                             phrase_counts[n][" ".join(ngram)] += 1
 
         def format_phrases(counts_dict, n_length, top_k=8):
             result = []
             for phrase, count in counts_dict.most_common(top_k):
-                if count > 1: # Only show it if it repeats
+                if count > 1:
                     density = round((count * n_length / total_words) * 100, 2)
                     result.append({"phrase": phrase, "count": count, "density": density})
             return result
@@ -196,9 +202,7 @@ def analyze(url: str):
             "top_3": format_phrases(phrase_counts[3], 3, 8),
             "top_4": format_phrases(phrase_counts[4], 4, 8)
         }
-        # ---------------------------------------------
 
-        # Get total words for the UI
         words = [w for w in soup.get_text(separator=" ").split() if len(w) > 2]
         
         title = soup.title.string.strip() if soup.title and soup.title.string else "No title"
