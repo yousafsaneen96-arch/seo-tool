@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 import json
 import time
 import re
@@ -28,207 +28,69 @@ def home():
         --danger: #ef4444;
     }
 
-    body {
-        margin: 0;
-        font-family: 'Poppins', sans-serif;
-        background-color: var(--bg-color);
-        color: var(--text-main);
-    }
-
-    .container {
-        max-width: 1100px;
-        margin: 50px auto;
-        padding: 0 20px;
-    }
-
-    .header-section {
-        text-align: center;
-        margin-bottom: 40px;
-    }
-
-    h1 {
-        font-size: 2.5rem;
-        margin-bottom: 5px;
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-
-    .brand {
-        color: var(--text-muted);
-        font-size: 14px;
-        font-weight: 500;
-        margin-bottom: 30px;
-    }
-
-    .search-box {
-        display: flex;
-        justify-content: center;
-        gap: 15px;
-        margin-bottom: 40px;
-    }
-
-    input {
-        padding: 16px 24px;
-        width: 60%;
-        border-radius: 50px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-        font-size: 16px;
-        font-family: 'Poppins', sans-serif;
-        outline: none;
-        transition: all 0.3s ease;
-    }
-
-    input:focus {
-        border-color: var(--primary);
-        box-shadow: 0 10px 25px -3px rgba(59, 130, 246, 0.2);
-    }
-
-    button {
-        padding: 16px 32px;
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
-        background-size: 200% auto;
-        border: none;
-        border-radius: 50px;
-        color: white;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
-        transition: all 0.4s ease;
-    }
-
-    button:hover {
-        background-position: right center;
-        transform: translateY(-2px);
-    }
-
-    /* Cards & Fluid Layouts */
-    .card {
-        background: var(--card-bg);
-        border-radius: 20px;
-        padding: 25px;
-        margin-bottom: 25px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        border: 1px solid #f1f5f9;
-    }
-
-    .card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    }
-
-    .card-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 20px;
-        color: var(--text-main);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    /* Scores Row */
-    .scores-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 25px;
-        margin-bottom: 25px;
-    }
-
-    .score-card {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-    }
-
-    .score-circle {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 32px;
-        font-weight: 700;
-        margin-bottom: 15px;
-        position: relative;
-    }
+    body { margin: 0; font-family: 'Poppins', sans-serif; background-color: var(--bg-color); color: var(--text-main); }
+    .container { max-width: 1100px; margin: 50px auto; padding: 0 20px; }
+    .header-section { text-align: center; margin-bottom: 40px; }
+    h1 { font-size: 2.5rem; margin-bottom: 5px; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .brand { color: var(--text-muted); font-size: 14px; font-weight: 500; margin-bottom: 30px; }
     
-    .score-circle::before {
-        content: "";
-        position: absolute;
-        inset: 10px;
-        background: white;
-        border-radius: 50%;
-        z-index: 1;
-    }
-    
-    .score-circle span {
-        position: relative;
-        z-index: 2;
-    }
+    .search-box { display: flex; justify-content: center; gap: 15px; margin-bottom: 40px; }
+    input { padding: 16px 24px; width: 60%; border-radius: 50px; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); font-size: 16px; font-family: 'Poppins', sans-serif; outline: none; transition: all 0.3s ease; }
+    input:focus { border-color: var(--primary); box-shadow: 0 10px 25px -3px rgba(59, 130, 246, 0.2); }
+    button { padding: 16px 32px; background: linear-gradient(135deg, var(--primary), var(--secondary)); background-size: 200% auto; border: none; border-radius: 50px; color: white; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3); transition: all 0.4s ease; }
+    button:hover { background-position: right center; transform: translateY(-2px); }
 
-    .score-label {
-        font-weight: 600;
-        color: var(--text-muted);
-    }
+    .card { background: var(--card-bg); border-radius: 20px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03); transition: transform 0.3s ease; border: 1px solid #f1f5f9; }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+    .card-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 20px; color: var(--text-main); }
 
-    /* Metrics Grid */
-    .metrics-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-    }
+    .scores-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-bottom: 25px; }
+    .score-card { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .score-circle { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; margin-bottom: 15px; position: relative; }
+    .score-circle::before { content: ""; position: absolute; inset: 10px; background: white; border-radius: 50%; z-index: 1; }
+    .score-circle span { position: relative; z-index: 2; }
 
-    .metric-box {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        padding: 20px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+    .metric-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; display: flex; align-items: center; gap: 15px; }
     .metric-value { font-size: 1.5rem; font-weight: 700; color: var(--text-main); }
     .metric-name { font-size: 0.875rem; color: var(--text-muted); font-weight: 500;}
 
+    /* SERP Simulator */
+    .serp-preview { background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; max-width: 650px; font-family: arial, sans-serif; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .serp-url { color: #202124; font-size: 14px; margin-bottom: 4px; }
+    .serp-title { color: #1a0dab; font-size: 20px; line-height: 1.3; margin-bottom: 4px; cursor: pointer; display: inline-block; }
+    .serp-title:hover { text-decoration: underline; }
+    .serp-desc { color: #4d5156; font-size: 14px; line-height: 1.58; word-wrap: break-word; }
+
     /* Social Preview */
-    .social-preview-container {
-        display: flex;
-        gap: 30px;
-        flex-wrap: wrap;
-    }
+    .social-preview-container { display: flex; gap: 30px; flex-wrap: wrap; }
     .social-table { flex: 1; min-width: 300px; font-size: 14px;}
     .social-table div { padding: 12px 0; border-bottom: 1px solid #e2e8f0; display: flex; gap: 15px;}
     .social-table div:last-child { border-bottom: none; }
     .social-table b { min-width: 100px; color: var(--text-muted); }
-    
-    .social-card-wrapper {
-        flex: 1;
-        min-width: 300px;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        overflow: hidden;
-        background: #f8fafc;
-    }
+    .social-card-wrapper { flex: 1; min-width: 300px; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #f8fafc; }
     .social-img { width: 100%; height: 200px; object-fit: cover; background: #cbd5e1; }
     .social-text { padding: 20px; }
     .social-text h4 { margin: 0 0 10px 0; font-size: 18px; }
     .social-text p { margin: 0; font-size: 14px; color: var(--text-muted); }
 
-    /* Tags & Keywords */
-    .tag-box {
-        background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--primary); font-size: 14px;
-    }
-    .keyword-badge {
-        display: inline-block; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; padding: 6px 14px; border-radius: 50px; margin: 4px; font-size: 13px; font-weight: 500;
-    }
+    /* Expandable Accordions */
+    details.accordion { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
+    details.accordion summary { padding: 15px 20px; font-weight: 600; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; transition: background 0.2s; }
+    details.accordion summary:hover { background: #e2e8f0; }
+    details.accordion summary::after { content: '+'; font-size: 20px; color: var(--text-muted); }
+    details[open].accordion summary::after { content: '-'; }
+    .accordion-content { padding: 15px 20px; border-top: 1px solid #e2e8f0; max-height: 300px; overflow-y: auto; background: white; font-size: 13px; color: var(--text-muted); }
+    .url-list-item { padding: 6px 0; border-bottom: 1px solid #f1f5f9; word-break: break-all; }
+    .url-list-item:last-child { border-bottom: none; }
+
+    /* Tags & Badges */
+    .file-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 50px; font-size: 14px; font-weight: 600; margin-right: 10px; margin-bottom: 10px; }
+    .file-found { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+    .file-missing { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+    .tag-box { background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--primary); font-size: 14px; }
+    .keyword-badge { display: inline-block; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; padding: 6px 14px; border-radius: 50px; margin: 4px; font-size: 13px; font-weight: 500; }
     .phrase-header { margin-top: 20px; font-size: 15px; font-weight: 600; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 12px; color: var(--text-main); }
     
     .issues-list { background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid var(--danger); }
@@ -239,30 +101,29 @@ def home():
       <div class="header-section">
           <h1>SEO Analyzer Pro</h1>
           <div class="brand">Built by Yousaf Saneen</div>
-          
           <div class="search-box">
               <input id='url' placeholder='https://example.com/'>
               <button onclick='run()'>Analyze Website</button>
           </div>
       </div>
-
       <div id='out'></div>
     </div>
 
     <script>
     function getScoreColor(score) {
-        if(score >= 90) return '#10b981'; // Green
-        if(score >= 70) return '#f59e0b'; // Orange
-        return '#ef4444'; // Red
+        if(score >= 90) return '#10b981';
+        if(score >= 70) return '#f59e0b';
+        return '#ef4444';
     }
 
     const renderBadges = (arr) => {
         if (!arr || arr.length === 0) return "<span style='font-size:13px; color:#94a3b8;'>None found</span>";
-        return arr.map(k => `
-            <div class="keyword-badge">
-                ${k.phrase} <span style="color:#64748b; font-weight:400; margin-left:4px;">(${k.density}%)</span>
-            </div>
-        `).join("");
+        return arr.map(k => `<div class="keyword-badge">${k.phrase} <span style="color:#64748b; font-weight:400; margin-left:4px;">(${k.density}%)</span></div>`).join("");
+    };
+
+    const renderList = (arr) => {
+        if (!arr || arr.length === 0) return "<div style='padding:10px;'>No items found.</div>";
+        return arr.map(item => `<div class="url-list-item">${item}</div>`).join("");
     };
 
     async function run(){
@@ -273,7 +134,7 @@ def home():
       document.getElementById('out').innerHTML = `
         <div class="card" style="text-align:center; padding: 40px;">
             <div style="font-size: 18px; font-weight: 500; color: var(--text-muted);">
-                <span style="display:inline-block; animation: pulse 1.5s infinite;">Scanning website architecture... this will take a moment.</span>
+                <span style="display:inline-block; animation: pulse 1.5s infinite;">Scanning architecture & executing JS render if needed...</span>
             </div>
         </div>
         <style>@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }</style>
@@ -293,16 +154,13 @@ def home():
           let speedScoreColor = speedScoreNum > 0 ? getScoreColor(speedScoreNum) : '#cbd5e1';
 
           document.getElementById('out').innerHTML = `
-            
             <div class="scores-grid">
                 <div class="card score-card">
                     <div class="score-circle" style="background: conic-gradient(${pageScoreColor} ${data.score}%, #e2e8f0 0);">
                         <span style="color: ${pageScoreColor}">${data.score}</span>
                     </div>
                     <div class="card-title" style="margin-bottom:0;">On-Page Score</div>
-                    <div style="font-size:13px; color:var(--text-muted); margin-top:5px;">Based on technical checks</div>
                 </div>
-                
                 <div class="card score-card">
                     <div class="score-circle" style="background: conic-gradient(${speedScoreColor} ${speedScoreNum}%, #e2e8f0 0);">
                         <span style="color: ${typeof data.google_speed === 'number' ? speedScoreColor : 'var(--text-muted)'}">
@@ -310,49 +168,39 @@ def home():
                         </span>
                     </div>
                     <div class="card-title" style="margin-bottom:0;">Google Performance</div>
-                    <div style="font-size:13px; color:var(--text-muted); margin-top:5px;">Mobile Lighthouse Score</div>
                 </div>
             </div>
 
             <div class="card">
-                <div class="card-title">Page Overview</div>
+                <div class="card-title">Page Overview ${data.js_rendered ? '<span style="font-size:12px; background:#f59e0b; color:white; padding:4px 8px; border-radius:4px; margin-left:10px;">JS Rendered</span>' : ''}</div>
                 <div class="metrics-grid">
                     <div class="metric-box">
-                        <div>
-                            <div class="metric-value">${data.links.internal}</div>
-                            <div class="metric-name">Internal Links</div>
-                        </div>
+                        <div><div class="metric-value">${data.links.internal_count}</div><div class="metric-name">Internal Links</div></div>
                     </div>
                     <div class="metric-box">
-                        <div>
-                            <div class="metric-value">${data.links.external}</div>
-                            <div class="metric-name">External Links</div>
-                        </div>
+                        <div><div class="metric-value">${data.links.external_count}</div><div class="metric-name">External Links</div></div>
                     </div>
                     <div class="metric-box">
-                        <div>
-                            <div class="metric-value">${data.images.total}</div>
-                            <div class="metric-name">Images (${data.images.missing_alt} missing ALT)</div>
-                        </div>
+                        <div><div class="metric-value">${data.images.total}</div><div class="metric-name">Images (${data.images.missing_alt_count} missing ALT)</div></div>
                     </div>
                     <div class="metric-box">
-                        <div>
-                            <div class="metric-value">${data.content.word_count}</div>
-                            <div class="metric-name">Words Processed</div>
-                        </div>
+                        <div><div class="metric-value">${data.content.word_count}</div><div class="metric-name">Words Processed</div></div>
                     </div>
                     <div class="metric-box">
-                        <div>
-                            <div class="metric-value">${data.performance.load_time_seconds}s</div>
-                            <div class="metric-name">Server Response</div>
-                        </div>
+                        <div><div class="metric-value">${data.performance.load_time_seconds}s</div><div class="metric-name">Server Response</div></div>
                     </div>
                     <div class="metric-box">
-                        <div>
-                            <div class="metric-value">${data.performance.status_code}</div>
-                            <div class="metric-name">HTTP Status</div>
-                        </div>
+                        <div><div class="metric-value">${data.performance.status_code}</div><div class="metric-name">HTTP Status</div></div>
                     </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Google SERP Simulator</div>
+                <div class="serp-preview">
+                    <div class="serp-url">${url}</div>
+                    <div class="serp-title">${data.content.title}</div>
+                    <div class="serp-desc">${data.content.meta_description}</div>
                 </div>
             </div>
 
@@ -375,13 +223,36 @@ def home():
             </div>
 
             <div class="card">
+                <div class="card-title">Core Site Files Status</div>
+                <div>
+                    <div class="file-badge ${data.site_files.robots ? 'file-found' : 'file-missing'}">${data.site_files.robots ? '✓' : '✗'} robots.txt</div>
+                    <div class="file-badge ${data.site_files.sitemap ? 'file-found' : 'file-missing'}">${data.site_files.sitemap ? '✓' : '✗'} sitemap.xml</div>
+                    <div class="file-badge ${data.site_files.llms ? 'file-found' : 'file-missing'}">${data.site_files.llms ? '✓' : '✗'} llms.txt (AI Readiness)</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Deep Link & Image Extraction</div>
+                <details class="accordion">
+                    <summary>Internal Links (${data.links.internal_count} found)</summary>
+                    <div class="accordion-content">${renderList(data.links.internal_urls)}</div>
+                </details>
+                <details class="accordion">
+                    <summary>External Links (${data.links.external_count} found)</summary>
+                    <div class="accordion-content">${renderList(data.links.external_urls)}</div>
+                </details>
+                <details class="accordion">
+                    <summary>Images Missing Alt Text (${data.images.missing_alt_count} found)</summary>
+                    <div class="accordion-content">${renderList(data.images.missing_alt_urls)}</div>
+                </details>
+            </div>
+
+            <div class="card">
                 <div class="card-title">Header Tags Architecture</div>
-                
                 <div style="margin-bottom: 20px;">
                     <div style="font-weight: 600; background:#2563eb; color:white; display:inline-block; padding:2px 10px; border-radius:4px; font-size:12px; margin-bottom:10px;">H1 Tags (${data.content.h1_list.length})</div>
                     ${data.content.h1_list.length ? data.content.h1_list.map((h, i) => `<div class="tag-box">${i+1}. ${h}</div>`).join('') : '<div class="tag-box" style="border-color:red;">Missing H1</div>'}
                 </div>
-
                 <div>
                     <div style="font-weight: 600; background:#3b82f6; color:white; display:inline-block; padding:2px 10px; border-radius:4px; font-size:12px; margin-bottom:10px;">H2 Tags (${data.content.h2_list.length})</div>
                     ${data.content.h2_list.length ? data.content.h2_list.map((h, i) => `<div class="tag-box">${i+1}. ${h}</div>`).join('') : '<div class="tag-box">No H2 tags found</div>'}
@@ -390,18 +261,10 @@ def home():
 
             <div class="card">
                 <div class="card-title">Keyword & Phrase Extraction</div>
-                
-                <div class="phrase-header">Primary Keywords</div>
-                <div>${renderBadges(data.keywords.top_1)}</div>
-
-                <div class="phrase-header">2-Word Combinations</div>
-                <div>${renderBadges(data.keywords.top_2)}</div>
-
-                <div class="phrase-header">3-Word Combinations</div>
-                <div>${renderBadges(data.keywords.top_3)}</div>
-
-                <div class="phrase-header">4-Word Combinations</div>
-                <div>${renderBadges(data.keywords.top_4)}</div>
+                <div class="phrase-header">Primary Keywords</div><div>${renderBadges(data.keywords.top_1)}</div>
+                <div class="phrase-header">2-Word Combinations</div><div>${renderBadges(data.keywords.top_2)}</div>
+                <div class="phrase-header">3-Word Combinations</div><div>${renderBadges(data.keywords.top_3)}</div>
+                <div class="phrase-header">4-Word Combinations</div><div>${renderBadges(data.keywords.top_4)}</div>
             </div>
 
             ${data.issues.length ? `
@@ -412,7 +275,6 @@ def home():
                 </ul>
             </div>
             ` : ''}
-
           `;
       } catch (err) {
           document.getElementById('out').innerHTML = `<div class="card issues-list" style="text-align:center;">Failed to fetch analysis. Check server logs.</div>`;
@@ -432,8 +294,46 @@ def analyze(url: str):
         
         status_code = r.status_code
         final_url = r.url 
+
+        # Site File Checker
+        parsed_url = urlparse(final_url)
+        base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
+        
+        def check_file(filename):
+            try:
+                res = requests.head(f"{base_url}/{filename}", headers=headers, timeout=5)
+                if res.status_code == 405 or res.status_code == 403:
+                    res = requests.get(f"{base_url}/{filename}", headers=headers, timeout=5, stream=True)
+                return res.status_code < 400
+            except:
+                return False
+
+        has_robots = check_file("robots.txt")
+        has_sitemap = check_file("sitemap.xml")
+        has_llms = check_file("llms.txt")
         
         soup = BeautifulSoup(r.text, "html.parser")
+        js_rendered = False
+
+        # --- RESTORED PLAYWRIGHT JS ENGINE ---
+        text_check = soup.get_text(separator=" ")
+        words_check = [w for w in text_check.split() if len(w) > 2]
+        
+        if len(words_check) < 200:
+            try:
+                from playwright.sync_api import sync_playwright
+                with sync_playwright() as p:
+                    browser = p.chromium.launch(headless=True)
+                    page = browser.new_page()
+                    page.goto(url, timeout=60000)
+                    page.wait_for_timeout(3000)
+                    html = page.content()
+                    browser.close()
+                soup = BeautifulSoup(html, "html.parser")
+                js_rendered = True
+            except Exception as inner_e:
+                print(f"Playwright fallback failed: {inner_e}")
+        # -------------------------------------
 
         # Google API Check
         google_score = "Checking..."
@@ -449,15 +349,13 @@ def analyze(url: str):
         except Exception:
             google_score = "Timeout"
 
-        # Extract Meta & OG tags before stripping scripts
         title = soup.title.string.strip() if soup.title and soup.title.string else "No title"
         meta_desc_tag = soup.find("meta", attrs={"name": "description"})
         meta_desc = meta_desc_tag["content"].strip() if meta_desc_tag and meta_desc_tag.get("content") else "No meta description"
-        
+
         og_title = soup.find("meta", property="og:title")
         og_desc = soup.find("meta", property="og:description")
         og_image = soup.find("meta", property="og:image")
-        
         og_tags = {
             "title": og_title["content"].strip() if og_title and og_title.get("content") else "",
             "description": og_desc["content"].strip() if og_desc and og_desc.get("content") else "",
@@ -493,7 +391,6 @@ def analyze(url: str):
 
         for line in raw_text_blocks.split('\n'):
             clean_line = line.lower()
-            
             for region, merged in regional_entities.items():
                 clean_line = clean_line.replace(region, merged)
                 
@@ -555,13 +452,18 @@ def analyze(url: str):
 
         return {
             "google_speed": google_score,
+            "js_rendered": js_rendered,
             "performance": {"status_code": status_code, "load_time_seconds": load_time},
+            "site_files": {"robots": has_robots, "sitemap": has_sitemap, "llms": has_llms},
             "indexing": {"canonical": canonical, "meta_robots": meta_robots},
             "content": {"title": title, "meta_description": meta_desc, "word_count": len(words), "h1_list": h1_list, "h2_list": h2_list},
             "og_tags": og_tags,
             "keywords": top_keywords,
-            "images": {"total": len(images), "missing_alt": len(missing_alt)},
-            "links": {"internal": len(internal_links), "external": len(external_links)},
+            "images": {"total": len(images), "missing_alt_count": len(missing_alt), "missing_alt_urls": missing_alt[:50]},
+            "links": {
+                "internal_count": len(internal_links), "internal_urls": list(internal_links)[:100], 
+                "external_count": len(external_links), "external_urls": list(external_links)[:100]
+            },
             "score": score,
             "issues": issues
         }
