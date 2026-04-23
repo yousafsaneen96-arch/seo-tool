@@ -145,52 +145,61 @@ def analyze(url: str):
         except Exception:
             google_score = "Timeout"
 
+        # Remove scripts and styles
         for s in soup(["script", "style", "noscript"]):
             s.extract()
 
-        text = soup.get_text(separator=" ")
+        # --- THE FIX: BOUNDARY-AWARE PHRASE EXTRACTOR ---
+        # 1. Use \n instead of space so menu items stay separated
+        raw_text_blocks = soup.get_text(separator="\n")
         
-        # --- NEW STEP: ADVANCED PHRASE EXTRACTOR ---
-        text_lower = text.lower()
-        # Grab all words that are at least 2 characters long
-        raw_words = re.findall(r'\b[a-z]{2,}\b', text_lower)
-        total_words = len(raw_words) if len(raw_words) > 0 else 1 # Prevent divide by zero error
-        
-        # Expanded stopword list to filter out useless phrases
-        stopwords = {"a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for", "with", "about", "by", "from", "of", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "do", "does", "did", "will", "would", "shall", "should", "can", "could", "may", "might", "must", "it", "this", "that", "these", "those", "which", "who", "whom", "whose", "what", "how", "why", "where", "when", "we", "you", "they", "he", "she", "your", "our", "their", "my", "his", "her", "its", "not", "no", "all", "any", "some", "more", "most", "other", "such", "only", "own", "same", "so", "than", "too", "very", "one", "two", "also", "if", "then", "as", "out", "up", "down", "into", "over", "after"}
+        # Expanded stopword list with boilerplate words added
+        stopwords = {"a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for", "with", "about", "by", "from", "of", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "do", "does", "did", "will", "would", "shall", "should", "can", "could", "may", "might", "must", "it", "this", "that", "these", "those", "which", "who", "whom", "whose", "what", "how", "why", "where", "when", "we", "you", "they", "he", "she", "your", "our", "their", "my", "his", "her", "its", "not", "no", "all", "any", "some", "more", "most", "other", "such", "only", "own", "same", "so", "than", "too", "very", "one", "two", "also", "if", "then", "as", "out", "up", "down", "into", "over", "after", "us", "home", "faq", "login", "contact", "read"}
 
-        def get_top_phrases(words, n, top_k=8):
-            if len(words) < n: return []
-            phrases = []
-            for i in range(len(words) - n + 1):
-                phrase_words = words[i:i+n]
-                # Skip the phrase if it STARTS or ENDS with a stopword (e.g. skips "in abu dhabi" but keeps "abu dhabi")
-                if phrase_words[0] in stopwords or phrase_words[-1] in stopwords:
-                    continue
-                phrases.append(" ".join(phrase_words))
+        # We need the total word count for density math
+        all_words_list = re.findall(r'\b[a-z]{2,}\b', raw_text_blocks.lower())
+        total_words = max(len(all_words_list), 1)
+
+        # Storage for our phrase counts
+        phrase_counts = {1: Counter(), 2: Counter(), 3: Counter(), 4: Counter()}
+
+        # 2. Process the text LINE BY LINE to stop "Navigation Bleed"
+        for line in raw_text_blocks.split('\n'):
+            words_in_line = re.findall(r'\b[a-z]{2,}\b', line.lower())
+            if not words_in_line: continue
             
-            counts = Counter(phrases)
+            # Count 1-word keywords
+            for w in words_in_line:
+                if w not in stopwords:
+                    phrase_counts[1][w] += 1
+                    
+            # Count 2, 3, and 4-word phrases ONLY within this specific line
+            for n in [2, 3, 4]:
+                if len(words_in_line) >= n:
+                    for i in range(len(words_in_line) - n + 1):
+                        ngram = words_in_line[i:i+n]
+                        # Don't save phrases that start or end with a stopword
+                        if ngram[0] not in stopwords and ngram[-1] not in stopwords:
+                            phrase_counts[n][" ".join(ngram)] += 1
+
+        def format_phrases(counts_dict, n_length, top_k=8):
             result = []
-            for phrase, count in counts.most_common(top_k):
-                if count > 1: # Only show phrases that are used more than once
-                    # Calculate how much of the page this phrase takes up
-                    density = round((count * n / total_words) * 100, 2)
+            for phrase, count in counts_dict.most_common(top_k):
+                if count > 1: # Only show it if it repeats
+                    density = round((count * n_length / total_words) * 100, 2)
                     result.append({"phrase": phrase, "count": count, "density": density})
             return result
 
-        meaningful_words = [w for w in raw_words if w not in stopwords]
-        word_counts = Counter(meaningful_words)
-        top_1 = [{"phrase": w, "count": c, "density": round((c / total_words) * 100, 2)} for w, c in word_counts.most_common(12) if c > 1]
-        
         top_keywords = {
-            "top_1": top_1,
-            "top_2": get_top_phrases(raw_words, 2, 8),
-            "top_3": get_top_phrases(raw_words, 3, 8),
-            "top_4": get_top_phrases(raw_words, 4, 8)
+            "top_1": format_phrases(phrase_counts[1], 1, 12),
+            "top_2": format_phrases(phrase_counts[2], 2, 8),
+            "top_3": format_phrases(phrase_counts[3], 3, 8),
+            "top_4": format_phrases(phrase_counts[4], 4, 8)
         }
         # ---------------------------------------------
 
-        words = [w for w in text.split() if len(w) > 2]
+        # Get total words for the UI
+        words = [w for w in soup.get_text(separator=" ").split() if len(w) > 2]
         
         title = soup.title.string.strip() if soup.title and soup.title.string else "No title"
         meta_desc_tag = soup.find("meta", attrs={"name": "description"})
