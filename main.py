@@ -14,6 +14,8 @@ app = FastAPI()
 @app.get("/", response_class=HTMLResponse)
 def home():
     return """
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
@@ -38,15 +40,19 @@ def home():
     .search-box { display: flex; justify-content: center; gap: 15px; margin-bottom: 40px; }
     input { padding: 16px 24px; width: 60%; border-radius: 50px; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); font-size: 16px; font-family: 'Poppins', sans-serif; outline: none; transition: all 0.3s ease; }
     input:focus { border-color: var(--primary); box-shadow: 0 10px 25px -3px rgba(59, 130, 246, 0.2); }
-    button { padding: 16px 32px; background: linear-gradient(135deg, var(--primary), var(--secondary)); background-size: 200% auto; border: none; border-radius: 50px; color: white; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3); transition: all 0.4s ease; }
-    button:hover { background-position: right center; transform: translateY(-2px); }
+    button.primary-btn { padding: 16px 32px; background: linear-gradient(135deg, var(--primary), var(--secondary)); background-size: 200% auto; border: none; border-radius: 50px; color: white; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3); transition: all 0.4s ease; }
+    button.primary-btn:hover { background-position: right center; transform: translateY(-2px); }
+    
+    button.pdf-btn { padding: 10px 24px; background: #1e293b; border: none; border-radius: 8px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.3s; display: flex; align-items: center; gap: 8px; }
+    button.pdf-btn:hover { background: #334155; }
 
-    .card { background: var(--card-bg); border-radius: 20px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03); transition: transform 0.3s ease, box-shadow 0.3s ease; border: 1px solid #f1f5f9; overflow: hidden; }
+    /* Added page-break-inside to prevent cards splitting in PDF */
+    .card { background: var(--card-bg); border-radius: 20px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03); transition: transform 0.3s ease, box-shadow 0.3s ease; border: 1px solid #f1f5f9; overflow: hidden; page-break-inside: avoid; break-inside: avoid; }
     .card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
     .card-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 20px; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
 
     .scores-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; margin-bottom: 25px; }
-    .score-card { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .score-card { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; page-break-inside: avoid; break-inside: avoid; }
     .score-circle { width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; margin-bottom: 15px; position: relative; }
     .score-circle::before { content: ""; position: absolute; inset: 10px; background: white; border-radius: 50%; z-index: 1; }
     .score-circle span { position: relative; z-index: 2; }
@@ -71,7 +77,7 @@ def home():
     .char-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
     .meta-website-used { display: block; background: #f8fafc; padding: 10px 15px; border-radius: 6px; margin: 10px 0; font-size: 13px; color: var(--text-main); border: 1px solid #e2e8f0; word-break: break-word; white-space: normal; }
 
-    details.accordion { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
+    details.accordion { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 15px; overflow: hidden; page-break-inside: avoid; break-inside: avoid; }
     details.accordion summary { padding: 15px 20px; font-weight: 600; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; transition: background 0.2s; }
     details.accordion summary:hover { background: #e2e8f0; }
     details.accordion summary::after { content: '+'; font-size: 20px; font-weight: normal; color: var(--text-muted); }
@@ -104,18 +110,23 @@ def home():
     .social-text p { margin: 0; font-size: 14px; color: var(--text-muted); }
     
     .audit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-    .audit-item { display: flex; align-items: flex-start; gap: 12px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
+    .audit-item { display: flex; align-items: flex-start; gap: 12px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; page-break-inside: avoid; break-inside: avoid; }
     .audit-icon { font-size: 18px; margin-top: 2px; }
     .audit-pass { color: var(--success); }
     .audit-fail { color: var(--danger); }
     .audit-details h4 { margin: 0 0 4px 0; font-size: 15px; color: var(--text-main); }
     .audit-details p { margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.4; }
     
-    .issues-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-    .issue-panel { background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid var(--danger); padding: 20px; border-radius: 8px; }
+    .issues-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 25px; }
+    .issue-panel { background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid var(--danger); padding: 20px; border-radius: 8px; page-break-inside: avoid; break-inside: avoid; }
     .issue-panel h3 { margin: 0 0 15px 0; color: #991b1b; font-size: 16px; display: flex; align-items: center; gap: 8px; }
     .issue-panel ul { margin: 0; padding-left: 20px; }
     .issue-panel li { color: #991b1b; margin-bottom: 8px; font-size: 14px; }
+
+    /* Watermark for PDF only */
+    .pdf-header { display: none; text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
+    .pdf-header h2 { color: var(--primary); margin: 0; font-size: 28px; }
+    .pdf-header p { color: var(--text-muted); margin: 5px 0 0 0; font-size: 14px; }
 
     </style>
 
@@ -125,7 +136,7 @@ def home():
           <div class="brand">Built by Yousaf Saneen</div>
           <div class="search-box">
               <input id='url' placeholder='https://example.com/'>
-              <button onclick='run()'>Analyze Website</button>
+              <button class="primary-btn" onclick='run()'>Analyze Website</button>
           </div>
       </div>
       <div id='out'></div>
@@ -154,6 +165,27 @@ def home():
         if (!arr || arr.length === 0) return "<div style='padding:10px;'>No items found.</div>";
         return arr.map(item => `<div class="url-list-item">${item}</div>`).join("");
     };
+
+    function downloadPDF(url) {
+        const element = document.getElementById('report-container');
+        
+        // Temporarily show the PDF header
+        const header = document.getElementById('pdf-header');
+        header.style.display = 'block';
+
+        const opt = {
+            margin:       [0.4, 0.4, 0.4, 0.4],
+            filename:     \`SEO_Audit_${url.replace(/https?:\\/\\//, '').replace(/\\//g, '')}.pdf\`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, windowWidth: 1100 },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+
+        // Generate PDF, then hide header again
+        html2pdf().set(opt).from(element).save().then(() => {
+            header.style.display = 'none';
+        });
+    }
 
     async function run(){
       let url = document.getElementById('url').value;
@@ -194,306 +226,322 @@ def home():
           }
 
           document.getElementById('out').innerHTML = `
-            <div class="scores-grid">
-                <div class="card score-card">
-                    <div class="score-circle" style="background: conic-gradient(${onPageColor} ${data.scores.on_page}%, #e2e8f0 0);">
-                        <span style="color: ${onPageColor}">${data.scores.on_page}</span>
-                    </div>
-                    <div class="score-label">On-Page SEO</div>
-                    <div class="score-sublabel">Content & Architecture</div>
-                </div>
-                <div class="card score-card">
-                    <div class="score-circle" style="background: conic-gradient(${techColor} ${data.scores.technical}%, #e2e8f0 0);">
-                        <span style="color: ${techColor}">${data.scores.technical}</span>
-                    </div>
-                    <div class="score-label">Technical SEO</div>
-                    <div class="score-sublabel">Security & Indexing</div>
-                </div>
-                <div class="card score-card">
-                    <div class="score-circle" style="background: conic-gradient(${speedColors.mobile} ${speedScores.mobile}%, #e2e8f0 0);">
-                        <span style="color: ${speedColors.mobile}">${speedScores.mobile > 0 ? speedScores.mobile : 'F'}</span>
-                    </div>
-                    <div class="score-label">Mobile Speed</div>
-                    <div class="score-sublabel">Lighthouse Score</div>
-                </div>
-                <div class="card score-card">
-                    <div class="score-circle" style="background: conic-gradient(${speedColors.desktop} ${speedScores.desktop}%, #e2e8f0 0);">
-                        <span style="color: ${speedColors.desktop}">${speedScores.desktop > 0 ? speedScores.desktop : 'F'}</span>
-                    </div>
-                    <div class="score-label">Desktop Speed</div>
-                    <div class="score-sublabel">Lighthouse Score</div>
-                </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h2 style="margin: 0; color: var(--text-main); font-size: 1.5rem;">Audit Results for ${url}</h2>
+                <button class="pdf-btn" onclick="downloadPDF('${url}')">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Download PDF Report
+                </button>
             </div>
 
-            ${(data.issues.on_page.length > 0 || data.issues.technical.length > 0) ? `
-            <div class="issues-list" style="margin-bottom: 25px;">
-                ${data.issues.on_page.length > 0 ? `
-                <div class="issue-panel">
-                    <h3>⚠️ On-Page Action Items</h3>
-                    <ul>${data.issues.on_page.map(i => `<li>${i}</li>`).join("")}</ul>
-                </div>
-                ` : ''}
-                ${data.issues.technical.length > 0 ? `
-                <div class="issue-panel">
-                    <h3>⚙️ Technical Action Items</h3>
-                    <ul>${data.issues.technical.map(i => `<li>${i}</li>`).join("")}</ul>
-                </div>
-                ` : ''}
-            </div>
-            ` : '<div class="card" style="background:#ecfdf5; border-color:#a7f3d0; color:#065f46; text-align:center; font-weight:600;">🎉 Perfect! No severe SEO issues detected.</div>'}
-
-            <div class="card">
-                <div class="card-title">Core Web Vitals Status</div>
-                <div class="cwv-subgrid">
-                    <div>
-                        <div style="font-weight: 600; color: var(--text-muted); margin-bottom: 10px;">Mobile</div>
-                        <div class="cwv-item"><b>LCP</b> <span>${data.performance.mobile.lcp || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.mobile.lcp_v, 'lcp')}"></span></span></div>
-                        <div class="cwv-item"><b>CLS</b> <span>${data.performance.mobile.cls || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.mobile.cls_v, 'cls')}"></span></span></div>
-                        <div class="cwv-item"><b>INP</b> <span>${data.performance.mobile.inp || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.mobile.inp_v, 'inp')}"></span></span></div>
-                    </div>
-                    <div>
-                        <div style="font-weight: 600; color: var(--text-muted); margin-bottom: 10px;">Desktop</div>
-                        <div class="cwv-item"><b>LCP</b> <span>${data.performance.desktop.lcp || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.desktop.lcp_v, 'lcp')}"></span></span></div>
-                        <div class="cwv-item"><b>CLS</b> <span>${data.performance.desktop.cls || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.desktop.cls_v, 'cls')}"></span></span></div>
-                        <div class="cwv-item"><b>INP</b> <span>${data.performance.desktop.inp || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.desktop.inp_v, 'inp')}"></span></span></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Page Overview ${data.js_rendered ? '<span style="font-size:12px; background:#f59e0b; color:white; padding:4px 8px; border-radius:4px; margin-left:10px;">JS Rendered</span>' : ''}</div>
-                <div class="metrics-grid">
-                    <div class="metric-box">
-                        <div><div class="metric-value">${data.links.internal_count}</div><div class="metric-name">Internal Links</div></div>
-                    </div>
-                    <div class="metric-box">
-                        <div><div class="metric-value">${data.links.external_count}</div><div class="metric-name">External Links</div></div>
-                    </div>
-                    <div class="metric-box">
-                        <div><div class="metric-value">${data.images.total}</div><div class="metric-name">Images</div></div>
-                    </div>
-                    <div class="metric-box">
-                        <div><div class="metric-value">${data.content.word_count}</div><div class="metric-name">Words Processed</div></div>
-                    </div>
-                    <div class="metric-box">
-                        <div><div class="metric-value">${data.server.load_time_seconds}s</div><div class="metric-name">Server Response</div></div>
-                    </div>
-                    <div class="metric-box">
-                        <div><div class="metric-value">${data.server.status_code}</div><div class="metric-name">HTTP Status</div></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Technical & Security Audits</div>
-                <div class="audit-grid">
-                    
-                    <div class="audit-item">
-                        <div class="audit-icon ${data.technical.https ? 'audit-pass' : 'audit-fail'}">${data.technical.https ? '✅' : '❌'}</div>
-                        <div class="audit-details">
-                            <h4>SSL Checker and HTTPS</h4>
-                            <p>${data.technical.https ? 'Website is successfully using HTTPS, a secure communication protocol.' : 'Warning: Website is not using HTTPS securely.'}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="audit-item">
-                        <div class="audit-icon ${data.technical.hsts ? 'audit-pass' : 'audit-fail'}">${data.technical.hsts ? '✅' : '❌'}</div>
-                        <div class="audit-details">
-                            <h4>HSTS Test</h4>
-                            <p>${data.technical.hsts ? 'Website is using Strict-Transport-Security to force secure connections.' : 'Website is not using the Strict-Transport-Security header.'}</p>
-                        </div>
-                    </div>
-
-                    <div class="audit-item">
-                        <div class="audit-icon ${data.technical.html_size_kb <= 100 ? 'audit-pass' : 'audit-fail'}">${data.technical.html_size_kb <= 100 ? '✅' : '❌'}</div>
-                        <div class="audit-details">
-                            <h4>HTML Page Size Test</h4>
-                            <p>The size of this HTML document is <b>${data.technical.html_size_kb} Kb</b>.</p>
-                        </div>
-                    </div>
-
-                    <div class="audit-item">
-                        <div class="audit-icon ${data.technical.has_schema ? 'audit-pass' : 'audit-fail'}">${data.technical.has_schema ? '✅' : '❌'}</div>
-                        <div class="audit-details">
-                            <h4>Schema.org Structured Data</h4>
-                            <p>${data.technical.has_schema ? 'Using JSON-LD or Microdata Schema to help search engines understand content.' : 'Missing Schema structured data markup.'}</p>
-                        </div>
-                    </div>
-
-                    <div class="audit-item">
-                        <div class="audit-icon ${data.technical.has_ga ? 'audit-pass' : 'audit-fail'}">${data.technical.has_ga ? '✅' : '❌'}</div>
-                        <div class="audit-details">
-                            <h4>Google Analytics Test</h4>
-                            <p>${data.technical.has_ga ? 'Google tracking scripts detected on the webpage.' : 'No Google Analytics scripts detected.'}</p>
-                        </div>
-                    </div>
-
-                    <div class="audit-item">
-                        <div class="audit-icon ${data.technical.has_favicon ? 'audit-pass' : 'audit-fail'}">${data.technical.has_favicon ? '✅' : '❌'}</div>
-                        <div class="audit-details">
-                            <h4>Favicon Test</h4>
-                            <p>${data.technical.has_favicon ? 'This website appears to have a valid favicon.' : 'No favicon link tag found.'}</p>
-                        </div>
-                    </div>
-
-                    <div class="audit-item">
-                        <div class="audit-icon ${data.technical.lang_attr ? 'audit-pass' : 'audit-fail'}">${data.technical.lang_attr ? '✅' : '❌'}</div>
-                        <div class="audit-details">
-                            <h4>Language Attribute</h4>
-                            <p>${data.technical.lang_attr ? `Page is using the Lang Attribute (Declared: ${data.technical.lang_attr}).` : 'Missing HTML lang attribute for international SEO.'}</p>
-                        </div>
-                    </div>
-
-                    <div class="audit-item">
-                        <div class="audit-icon ${data.technical.has_hreflang ? 'audit-pass' : 'audit-fail'}">${data.technical.has_hreflang ? '✅' : '❌'}</div>
-                        <div class="audit-details">
-                            <h4>Hreflang Usage</h4>
-                            <p>${data.technical.has_hreflang ? 'Page makes use of Hreflang attributes for multi-region targeting.' : 'Page is not making use of Hreflang attributes.'}</p>
-                        </div>
-                    </div>
-
-                    <div class="audit-item">
-                        <div class="audit-icon ${data.technical.responsive_images_pass ? 'audit-pass' : 'audit-fail'}">${data.technical.responsive_images_pass ? '✅' : '❌'}</div>
-                        <div class="audit-details">
-                            <h4>Responsive Image Test</h4>
-                            <p>${data.technical.responsive_images_pass ? 'Images are properly sized and optimized for different viewports.' : 'Warning: Website is serving images larger than needed for the viewport.'}</p>
-                        </div>
-                    </div>
-
-                    <div class="audit-item">
-                        <div class="audit-icon ${data.technical.canonical_pass ? 'audit-pass' : 'audit-fail'}">${data.technical.canonical_pass ? '✅' : '❌'}</div>
-                        <div class="audit-details">
-                            <h4>Canonical Tag Test</h4>
-                            <p>${data.technical.canonical_pass ? 'Website is using the canonical link tag to specify the preferred URL.' : 'Missing canonical link tag.'}</p>
-                        </div>
-                    </div>
-
-                    <div class="audit-item">
-                        <div class="audit-icon ${data.technical.noindex_pass ? 'audit-pass' : 'audit-fail'}">${data.technical.noindex_pass ? '✅' : '❌'}</div>
-                        <div class="audit-details">
-                            <h4>Noindex Tag Test</h4>
-                            <p>${data.technical.noindex_pass ? 'This webpage does not use the noindex meta tag. It can be indexed.' : 'Search engines are blocked by a noindex tag.'}</p>
-                        </div>
-                    </div>
-
-                    <div class="audit-item">
-                        <div class="audit-icon ${data.technical.www_resolve ? 'audit-pass' : 'audit-fail'}">${data.technical.www_resolve ? '✅' : '❌'}</div>
-                        <div class="audit-details">
-                            <h4>URL Canonicalization Test</h4>
-                            <p>${data.technical.www_resolve ? 'WWW and non-WWW URLs correctly resolve to the same location.' : 'Warning: WWW and non-WWW versions do not automatically redirect.'}</p>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Google SERP Simulator</div>
-                <div class="serp-preview">
-                    <div class="serp-url">${url}</div>
-                    <div class="serp-title">${data.content.title}</div>
-                    <div class="serp-desc">${data.content.meta_description}</div>
-                </div>
-                <div class="char-check-block">
-                    <div>
-                        <div class="card-title" style="font-size: 15px; margin-bottom: 5px;">Website Used Meta Title</div>
-                        <span class="meta-website-used">${data.content.title}</span>
-                        <div class="char-status ${data.content.title_len > 10 && data.content.title_len <= 60 ? 'char-ok' : 'char-error'}">
-                            <div class="char-val">${data.content.title_len}</div>
-                            Title Characters Used (Optimal: 50-60 Characters)
-                        </div>
-                    </div>
-                    <div>
-                        <div class="card-title" style="font-size: 15px; margin-bottom: 5px;">Website Used Meta Description</div>
-                        <span class="meta-website-used">${data.content.meta_description}</span>
-                        <div class="char-status ${data.content.meta_desc_len > 50 && data.content.meta_desc_len <= 160 ? 'char-ok' : 'char-error'}">
-                            <div class="char-val">${data.content.meta_desc_len}</div>
-                            Description Characters Used (Optimal: 150-160 Characters)
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Social Media Preview</div>
-                <div class="social-preview-container">
-                    <div class="social-table">
-                        <div><b>og:title</b> <span>${data.og_tags.title || 'Missing'}</span></div>
-                        <div><b>og:desc</b> <span>${data.og_tags.description || 'Missing'}</span></div>
-                        <div><b>og:image</b> <span>${data.og_tags.image || 'Missing'}</span></div>
-                    </div>
-                    <div class="social-card-wrapper">
-                        ${data.og_tags.image ? `<img src="${data.og_tags.image}" class="social-img">` : '<div class="social-img" style="display:flex;align-items:center;justify-content:center;color:#94a3b8;">No Image Provided</div>'}
-                        <div class="social-text">
-                            <h4>${data.og_tags.title || data.content.title}</h4>
-                            <p>${data.og_tags.description || data.content.meta_description}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Core Site Files Status</div>
-                <div>
-                    <div class="file-badge ${data.site_files.robots ? 'file-found' : 'file-missing'}">
-                        ${data.site_files.robots ? '✓' : '✗'} robots.txt
-                    </div>
-                    <div class="file-badge ${data.site_files.sitemap ? 'file-found' : 'file-missing'}">
-                        ${data.site_files.sitemap ? '✓' : '✗'} sitemap.xml
-                    </div>
-                    <div class="file-badge ${data.site_files.llms ? 'file-found' : 'file-missing'}">
-                        ${data.site_files.llms ? '✓' : '✗'} llms.txt (AI Readiness)
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Deep Link & Image Extraction</div>
+            <div id="report-container" style="background: var(--bg-color); padding: 10px;">
                 
-                <details class="accordion">
-                    <summary>Internal Links (${data.links.internal_count} found)</summary>
-                    <div class="accordion-content">${renderList(data.links.internal_urls)}</div>
-                </details>
+                <div id="pdf-header" class="pdf-header">
+                    <h2>SEO Analyzer Pro</h2>
+                    <p>Comprehensive Audit Report generated for <b>${url}</b></p>
+                    <p style="color: #94a3b8; font-size: 12px; margin-top: 15px;">Generated by Yousaf Saneen's SEO Engine</p>
+                </div>
 
-                <details class="accordion">
-                    <summary>External Links (${data.links.external_count} found)</summary>
-                    <div class="accordion-content">${renderList(data.links.external_urls)}</div>
-                </details>
+                <div class="scores-grid">
+                    <div class="card score-card" style="margin-bottom:0;">
+                        <div class="score-circle" style="background: conic-gradient(${onPageColor} ${data.scores.on_page}%, #e2e8f0 0);">
+                            <span style="color: ${onPageColor}">${data.scores.on_page}</span>
+                        </div>
+                        <div class="score-label">On-Page SEO</div>
+                        <div class="score-sublabel">Content & Architecture</div>
+                    </div>
+                    <div class="card score-card" style="margin-bottom:0;">
+                        <div class="score-circle" style="background: conic-gradient(${techColor} ${data.scores.technical}%, #e2e8f0 0);">
+                            <span style="color: ${techColor}">${data.scores.technical}</span>
+                        </div>
+                        <div class="score-label">Technical SEO</div>
+                        <div class="score-sublabel">Security & Indexing</div>
+                    </div>
+                    <div class="card score-card" style="margin-bottom:0;">
+                        <div class="score-circle" style="background: conic-gradient(${speedColors.mobile} ${speedScores.mobile}%, #e2e8f0 0);">
+                            <span style="color: ${speedColors.mobile}">${speedScores.mobile > 0 ? speedScores.mobile : 'F'}</span>
+                        </div>
+                        <div class="score-label">Mobile Speed</div>
+                        <div class="score-sublabel">Lighthouse Score</div>
+                    </div>
+                    <div class="card score-card" style="margin-bottom:0;">
+                        <div class="score-circle" style="background: conic-gradient(${speedColors.desktop} ${speedScores.desktop}%, #e2e8f0 0);">
+                            <span style="color: ${speedColors.desktop}">${speedScores.desktop > 0 ? speedScores.desktop : 'F'}</span>
+                        </div>
+                        <div class="score-label">Desktop Speed</div>
+                        <div class="score-sublabel">Lighthouse Score</div>
+                    </div>
+                </div>
 
-                ${data.images.missing_alt_count === 0 ? `
-                    <div class="file-badge file-found" style="width:100%; border-radius:8px; display:block; text-align:center; box-sizing: border-box;">✓ No missing alt text found</div>
-                ` : `
+                ${(data.issues.on_page.length > 0 || data.issues.technical.length > 0) ? `
+                <div class="issues-list" style="margin-top: 25px;">
+                    ${data.issues.on_page.length > 0 ? `
+                    <div class="issue-panel">
+                        <h3>⚠️ On-Page Action Items</h3>
+                        <ul>${data.issues.on_page.map(i => `<li>${i}</li>`).join("")}</ul>
+                    </div>
+                    ` : ''}
+                    ${data.issues.technical.length > 0 ? `
+                    <div class="issue-panel">
+                        <h3>⚙️ Technical Action Items</h3>
+                        <ul>${data.issues.technical.map(i => `<li>${i}</li>`).join("")}</ul>
+                    </div>
+                    ` : ''}
+                </div>
+                ` : '<div class="card" style="background:#ecfdf5; border-color:#a7f3d0; color:#065f46; text-align:center; font-weight:600; margin-top:25px;">🎉 Perfect! No severe SEO issues detected.</div>'}
+
+                <div class="card" style="margin-top: 25px;">
+                    <div class="card-title">Core Web Vitals Status</div>
+                    <div class="cwv-subgrid">
+                        <div>
+                            <div style="font-weight: 600; color: var(--text-muted); margin-bottom: 10px;">Mobile</div>
+                            <div class="cwv-item"><b>LCP</b> <span>${data.performance.mobile.lcp || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.mobile.lcp_v, 'lcp')}"></span></span></div>
+                            <div class="cwv-item"><b>CLS</b> <span>${data.performance.mobile.cls || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.mobile.cls_v, 'cls')}"></span></span></div>
+                            <div class="cwv-item"><b>INP</b> <span>${data.performance.mobile.inp || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.mobile.inp_v, 'inp')}"></span></span></div>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; color: var(--text-muted); margin-bottom: 10px;">Desktop</div>
+                            <div class="cwv-item"><b>LCP</b> <span>${data.performance.desktop.lcp || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.desktop.lcp_v, 'lcp')}"></span></span></div>
+                            <div class="cwv-item"><b>CLS</b> <span>${data.performance.desktop.cls || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.desktop.cls_v, 'cls')}"></span></span></div>
+                            <div class="cwv-item"><b>INP</b> <span>${data.performance.desktop.inp || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.desktop.inp_v, 'inp')}"></span></span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Page Overview ${data.js_rendered ? '<span style="font-size:12px; background:#f59e0b; color:white; padding:4px 8px; border-radius:4px; margin-left:10px;">JS Rendered</span>' : ''}</div>
+                    <div class="metrics-grid">
+                        <div class="metric-box">
+                            <div><div class="metric-value">${data.links.internal_count}</div><div class="metric-name">Internal Links</div></div>
+                        </div>
+                        <div class="metric-box">
+                            <div><div class="metric-value">${data.links.external_count}</div><div class="metric-name">External Links</div></div>
+                        </div>
+                        <div class="metric-box">
+                            <div><div class="metric-value">${data.images.total}</div><div class="metric-name">Images</div></div>
+                        </div>
+                        <div class="metric-box">
+                            <div><div class="metric-value">${data.content.word_count}</div><div class="metric-name">Words Processed</div></div>
+                        </div>
+                        <div class="metric-box">
+                            <div><div class="metric-value">${data.server.load_time_seconds}s</div><div class="metric-name">Server Response</div></div>
+                        </div>
+                        <div class="metric-box">
+                            <div><div class="metric-value">${data.server.status_code}</div><div class="metric-name">HTTP Status</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Technical & Security Audits</div>
+                    <div class="audit-grid">
+                        
+                        <div class="audit-item">
+                            <div class="audit-icon ${data.technical.https ? 'audit-pass' : 'audit-fail'}">${data.technical.https ? '✅' : '❌'}</div>
+                            <div class="audit-details">
+                                <h4>SSL Checker and HTTPS</h4>
+                                <p>${data.technical.https ? 'Website is successfully using HTTPS, a secure communication protocol.' : 'Warning: Website is not using HTTPS securely.'}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="audit-item">
+                            <div class="audit-icon ${data.technical.hsts ? 'audit-pass' : 'audit-fail'}">${data.technical.hsts ? '✅' : '❌'}</div>
+                            <div class="audit-details">
+                                <h4>HSTS Test</h4>
+                                <p>${data.technical.hsts ? 'Website is using Strict-Transport-Security to force secure connections.' : 'Website is not using the Strict-Transport-Security header.'}</p>
+                            </div>
+                        </div>
+
+                        <div class="audit-item">
+                            <div class="audit-icon ${data.technical.html_size_kb <= 100 ? 'audit-pass' : 'audit-fail'}">${data.technical.html_size_kb <= 100 ? '✅' : '❌'}</div>
+                            <div class="audit-details">
+                                <h4>HTML Page Size Test</h4>
+                                <p>The size of this HTML document is <b>${data.technical.html_size_kb} Kb</b>.</p>
+                            </div>
+                        </div>
+
+                        <div class="audit-item">
+                            <div class="audit-icon ${data.technical.has_schema ? 'audit-pass' : 'audit-fail'}">${data.technical.has_schema ? '✅' : '❌'}</div>
+                            <div class="audit-details">
+                                <h4>Schema.org Structured Data</h4>
+                                <p>${data.technical.has_schema ? 'Using JSON-LD or Microdata Schema to help search engines understand content.' : 'Missing Schema structured data markup.'}</p>
+                            </div>
+                        </div>
+
+                        <div class="audit-item">
+                            <div class="audit-icon ${data.technical.has_ga ? 'audit-pass' : 'audit-fail'}">${data.technical.has_ga ? '✅' : '❌'}</div>
+                            <div class="audit-details">
+                                <h4>Google Analytics Test</h4>
+                                <p>${data.technical.has_ga ? 'Google tracking scripts detected on the webpage.' : 'No Google Analytics scripts detected.'}</p>
+                            </div>
+                        </div>
+
+                        <div class="audit-item">
+                            <div class="audit-icon ${data.technical.has_favicon ? 'audit-pass' : 'audit-fail'}">${data.technical.has_favicon ? '✅' : '❌'}</div>
+                            <div class="audit-details">
+                                <h4>Favicon Test</h4>
+                                <p>${data.technical.has_favicon ? 'This website appears to have a valid favicon.' : 'No favicon link tag found.'}</p>
+                            </div>
+                        </div>
+
+                        <div class="audit-item">
+                            <div class="audit-icon ${data.technical.lang_attr ? 'audit-pass' : 'audit-fail'}">${data.technical.lang_attr ? '✅' : '❌'}</div>
+                            <div class="audit-details">
+                                <h4>Language Attribute</h4>
+                                <p>${data.technical.lang_attr ? `Page is using the Lang Attribute (Declared: ${data.technical.lang_attr}).` : 'Missing HTML lang attribute for international SEO.'}</p>
+                            </div>
+                        </div>
+
+                        <div class="audit-item">
+                            <div class="audit-icon ${data.technical.has_hreflang ? 'audit-pass' : 'audit-fail'}">${data.technical.has_hreflang ? '✅' : '❌'}</div>
+                            <div class="audit-details">
+                                <h4>Hreflang Usage</h4>
+                                <p>${data.technical.has_hreflang ? 'Page makes use of Hreflang attributes for multi-region targeting.' : 'Page is not making use of Hreflang attributes.'}</p>
+                            </div>
+                        </div>
+
+                        <div class="audit-item">
+                            <div class="audit-icon ${data.technical.responsive_images_pass ? 'audit-pass' : 'audit-fail'}">${data.technical.responsive_images_pass ? '✅' : '❌'}</div>
+                            <div class="audit-details">
+                                <h4>Responsive Image Test</h4>
+                                <p>${data.technical.responsive_images_pass ? 'Images are properly sized and optimized for different viewports.' : 'Warning: Website is serving images larger than needed for the viewport.'}</p>
+                            </div>
+                        </div>
+
+                        <div class="audit-item">
+                            <div class="audit-icon ${data.technical.canonical_pass ? 'audit-pass' : 'audit-fail'}">${data.technical.canonical_pass ? '✅' : '❌'}</div>
+                            <div class="audit-details">
+                                <h4>Canonical Tag Test</h4>
+                                <p>${data.technical.canonical_pass ? 'Website is using the canonical link tag to specify the preferred URL.' : 'Missing canonical link tag.'}</p>
+                            </div>
+                        </div>
+
+                        <div class="audit-item">
+                            <div class="audit-icon ${data.technical.noindex_pass ? 'audit-pass' : 'audit-fail'}">${data.technical.noindex_pass ? '✅' : '❌'}</div>
+                            <div class="audit-details">
+                                <h4>Noindex Tag Test</h4>
+                                <p>${data.technical.noindex_pass ? 'This webpage does not use the noindex meta tag. It can be indexed.' : 'Search engines are blocked by a noindex tag.'}</p>
+                            </div>
+                        </div>
+
+                        <div class="audit-item">
+                            <div class="audit-icon ${data.technical.www_resolve ? 'audit-pass' : 'audit-fail'}">${data.technical.www_resolve ? '✅' : '❌'}</div>
+                            <div class="audit-details">
+                                <h4>URL Canonicalization Test</h4>
+                                <p>${data.technical.www_resolve ? 'WWW and non-WWW URLs correctly resolve to the same location.' : 'Warning: WWW and non-WWW versions do not automatically redirect.'}</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Google SERP Simulator</div>
+                    <div class="serp-preview">
+                        <div class="serp-url">${url}</div>
+                        <div class="serp-title">${data.content.title}</div>
+                        <div class="serp-desc">${data.content.meta_description}</div>
+                    </div>
+                    <div class="char-check-block">
+                        <div>
+                            <div class="card-title" style="font-size: 15px; margin-bottom: 5px;">Website Used Meta Title</div>
+                            <span class="meta-website-used">${data.content.title}</span>
+                            <div class="char-status ${data.content.title_len > 10 && data.content.title_len <= 60 ? 'char-ok' : 'char-error'}">
+                                <div class="char-val">${data.content.title_len}</div>
+                                Title Characters Used (Optimal: 50-60 Characters)
+                            </div>
+                        </div>
+                        <div>
+                            <div class="card-title" style="font-size: 15px; margin-bottom: 5px;">Website Used Meta Description</div>
+                            <span class="meta-website-used">${data.content.meta_description}</span>
+                            <div class="char-status ${data.content.meta_desc_len > 50 && data.content.meta_desc_len <= 160 ? 'char-ok' : 'char-error'}">
+                                <div class="char-val">${data.content.meta_desc_len}</div>
+                                Description Characters Used (Optimal: 150-160 Characters)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Social Media Preview</div>
+                    <div class="social-preview-container">
+                        <div class="social-table">
+                            <div><b>og:title</b> <span>${data.og_tags.title || 'Missing'}</span></div>
+                            <div><b>og:desc</b> <span>${data.og_tags.description || 'Missing'}</span></div>
+                            <div><b>og:image</b> <span>${data.og_tags.image || 'Missing'}</span></div>
+                        </div>
+                        <div class="social-card-wrapper">
+                            ${data.og_tags.image ? `<img src="${data.og_tags.image}" class="social-img">` : '<div class="social-img" style="display:flex;align-items:center;justify-content:center;color:#94a3b8;">No Image Provided</div>'}
+                            <div class="social-text">
+                                <h4>${data.og_tags.title || data.content.title}</h4>
+                                <p>${data.og_tags.description || data.content.meta_description}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Core Site Files Status</div>
+                    <div>
+                        <div class="file-badge ${data.site_files.robots ? 'file-found' : 'file-missing'}">
+                            ${data.site_files.robots ? '✓' : '✗'} robots.txt
+                        </div>
+                        <div class="file-badge ${data.site_files.sitemap ? 'file-found' : 'file-missing'}">
+                            ${data.site_files.sitemap ? '✓' : '✗'} sitemap.xml
+                        </div>
+                        <div class="file-badge ${data.site_files.llms ? 'file-found' : 'file-missing'}">
+                            ${data.site_files.llms ? '✓' : '✗'} llms.txt (AI Readiness)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Deep Link & Image Extraction</div>
+                    
                     <details class="accordion">
-                        <summary>Images Missing Alt Text (${data.images.missing_alt_count} found)</summary>
-                        <div class="accordion-content">${renderList(data.images.missing_alt_urls)}</div>
+                        <summary>Internal Links (${data.links.internal_count} found)</summary>
+                        <div class="accordion-content">${renderList(data.links.internal_urls)}</div>
                     </details>
-                `}
-            </div>
 
-            <div class="card">
-                <div class="card-title">Header Tags Architecture</div>
-                <div style="margin-bottom: 20px;">
-                    <div style="font-weight: 600; background:#2563eb; color:white; display:inline-block; padding:2px 10px; border-radius:4px; font-size:12px; margin-bottom:10px;">H1 Tags (${data.content.h1_list.length})</div>
-                    ${data.content.h1_list.length ? data.content.h1_list.map((h, i) => `<div class="tag-box">${i+1}. ${h}</div>`).join('') : '<div class="tag-box" style="border-color:red;">Missing H1</div>'}
-                </div>
-                <div>
-                    <div style="font-weight: 600; background:#3b82f6; color:white; display:inline-block; padding:2px 10px; border-radius:4px; font-size:12px; margin-bottom:10px;">H2 Tags (${data.content.h2_list.length})</div>
-                    ${data.content.h2_list.length ? data.content.h2_list.map((h, i) => `<div class="tag-box">${i+1}. ${h}</div>`).join('') : '<div class="tag-box">No H2 tags found</div>'}
-                </div>
-            </div>
+                    <details class="accordion">
+                        <summary>External Links (${data.links.external_count} found)</summary>
+                        <div class="accordion-content">${renderList(data.links.external_urls)}</div>
+                    </details>
 
-            <div class="card">
-                <div class="card-title">Keyword & Phrase Extraction</div>
-                <div class="phrase-header">Primary Keywords</div>
-                <div class="badge-container">${renderBadges(data.keywords.top_1)}</div>
-                <div class="phrase-header">2-Word Combinations</div>
-                <div class="badge-container">${renderBadges(data.keywords.top_2)}</div>
-                <div class="phrase-header">3-Word Combinations</div>
-                <div class="badge-container">${renderBadges(data.keywords.top_3)}</div>
-                <div class="phrase-header">4-Word Combinations</div>
-                <div class="badge-container">${renderBadges(data.keywords.top_4)}</div>
-            </div>
-          `;
+                    ${data.images.missing_alt_count === 0 ? `
+                        <div class="file-badge file-found" style="width:100%; border-radius:8px; display:block; text-align:center; box-sizing: border-box;">✓ No missing alt text found</div>
+                    ` : `
+                        <details class="accordion">
+                            <summary>Images Missing Alt Text (${data.images.missing_alt_count} found)</summary>
+                            <div class="accordion-content">${renderList(data.images.missing_alt_urls)}</div>
+                        </details>
+                    `}
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Header Tags Architecture</div>
+                    <div style="margin-bottom: 20px;">
+                        <div style="font-weight: 600; background:#2563eb; color:white; display:inline-block; padding:2px 10px; border-radius:4px; font-size:12px; margin-bottom:10px;">H1 Tags (${data.content.h1_list.length})</div>
+                        ${data.content.h1_list.length ? data.content.h1_list.map((h, i) => `<div class="tag-box">${i+1}. ${h}</div>`).join('') : '<div class="tag-box" style="border-color:red;">Missing H1</div>'}
+                    </div>
+                    <div>
+                        <div style="font-weight: 600; background:#3b82f6; color:white; display:inline-block; padding:2px 10px; border-radius:4px; font-size:12px; margin-bottom:10px;">H2 Tags (${data.content.h2_list.length})</div>
+                        ${data.content.h2_list.length ? data.content.h2_list.map((h, i) => `<div class="tag-box">${i+1}. ${h}</div>`).join('') : '<div class="tag-box">No H2 tags found</div>'}
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Keyword & Phrase Extraction</div>
+                    <div class="phrase-header">Primary Keywords</div>
+                    <div class="badge-container">${renderBadges(data.keywords.top_1)}</div>
+                    <div class="phrase-header">2-Word Combinations</div>
+                    <div class="badge-container">${renderBadges(data.keywords.top_2)}</div>
+                    <div class="phrase-header">3-Word Combinations</div>
+                    <div class="badge-container">${renderBadges(data.keywords.top_3)}</div>
+                    <div class="phrase-header">4-Word Combinations</div>
+                    <div class="badge-container">${renderBadges(data.keywords.top_4)}</div>
+                </div>
+            </div> `;
       } catch (err) {
           document.getElementById('out').innerHTML = `<div class="card" style="text-align:center; color:red;">Failed to fetch analysis. Check server logs.</div>`;
       }
@@ -724,7 +772,6 @@ def analyze(url: str):
             if href.startswith("/") or url in href: internal_links.add(urljoin(url, href))
             elif href.startswith("http"): external_links.add(href)
 
-        # --- NEW SCORING LOGIC ---
         on_page_issues = []
         on_page_score = 100
         
@@ -758,7 +805,6 @@ def analyze(url: str):
             on_page_issues.append(f"{len(missing_alt)} images missing alt text (-{penalty})")
             on_page_score -= penalty
 
-        # Strict 4.0% keyword stuffing threshold
         for kw in top_keywords["top_1"]:
             if kw["density"] > 4.0:  
                 on_page_issues.append(f"Keyword stuffing: '{kw['phrase']}' is heavily overused at {kw['density']}% (-10)")
@@ -795,7 +841,6 @@ def analyze(url: str):
             technical_issues.append(f"HTML size is very large ({html_size_kb} Kb) (-5)")
             technical_score -= 5
 
-        # CWV Penalties
         if isinstance(mobile_psi.get("lcp_v"), float) and mobile_psi["lcp_v"] > 2.5:
             technical_issues.append(f"Mobile LCP is too slow ({mobile_psi['lcp_v']}s) (-10)")
             technical_score -= 10
