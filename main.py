@@ -71,7 +71,6 @@ def home():
     .metric-value { font-size: 1.5rem; font-weight: 700; color: var(--text-main); }
     .metric-name { font-size: 0.875rem; color: var(--text-muted); font-weight: 500;}
 
-    /* SERP Simulator */
     .serp-preview { background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; max-width: 650px; font-family: arial, sans-serif; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 20px; word-break: break-word; }
     .serp-url { color: #202124; font-size: 14px; margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
     .serp-title { color: #1a0dab; font-size: 20px; line-height: 1.3; margin-bottom: 4px; cursor: pointer; display: inline-block; }
@@ -85,7 +84,6 @@ def home():
     .char-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
     .meta-website-used { display: block; background: #f8fafc; padding: 10px 15px; border-radius: 6px; margin: 10px 0; font-size: 13px; color: var(--text-main); border: 1px solid #e2e8f0; word-break: break-word; white-space: normal; }
 
-    /* Expandable Accordions */
     details.accordion { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 15px; overflow: hidden; page-break-inside: avoid; break-inside: avoid; }
     details.accordion summary { padding: 15px 20px; font-weight: 600; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; transition: background 0.2s; }
     details.accordion summary:hover { background: #e2e8f0; }
@@ -95,16 +93,11 @@ def home():
     .url-list-item { padding: 6px 0; border-bottom: 1px solid #f1f5f9; }
     .url-list-item:last-child { border-bottom: none; }
 
-    /* CWV Card */
     .cwv-subgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 15px; }
     .cwv-item { display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
     .cwv-badge { padding: 2px 8px; font-size: 11px; font-weight: 700; border-radius: 4px; color: white; margin-left: 8px; }
 
-    /* Tags & Badges */
     .badge-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
-    .file-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 50px; font-size: 14px; font-weight: 600; margin-right: 10px; margin-bottom: 10px; }
-    .file-found { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
-    .file-missing { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
     .tag-box { background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--primary); font-size: 14px; }
     .keyword-badge { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; padding: 6px 14px; border-radius: 50px; font-size: 13px; font-weight: 500; }
     .phrase-header { margin-top: 20px; font-size: 15px; font-weight: 600; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 12px; color: var(--text-main); }
@@ -121,7 +114,7 @@ def home():
     .social-text p { margin: 0; font-size: 14px; color: var(--text-muted); }
     
     .audit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-    .audit-item { display: flex; align-items: flex-start; gap: 12px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
+    .audit-item { display: flex; align-items: flex-start; gap: 12px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; page-break-inside: avoid; break-inside: avoid; }
     .audit-icon { font-size: 18px; margin-top: 2px; }
     .audit-pass { color: var(--success); }
     .audit-fail { color: var(--danger); }
@@ -129,7 +122,7 @@ def home():
     .audit-details p { margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.4; }
     
     .issues-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 25px; }
-    .issue-panel { background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid var(--danger); padding: 20px; border-radius: 8px; }
+    .issue-panel { background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid var(--danger); padding: 20px; border-radius: 8px; page-break-inside: avoid; break-inside: avoid; }
     .issue-panel h3 { margin: 0 0 15px 0; color: #991b1b; font-size: 16px; margin-bottom: 8px;}
     .issue-panel ul { margin: 0; padding-left: 20px; }
     .issue-panel li { color: #991b1b; margin-bottom: 8px; font-size: 14px; }
@@ -209,9 +202,13 @@ def home():
         const element = document.getElementById('report-container');
         const header = document.getElementById('pdf-header');
         header.style.display = 'block';
+        
+        let cleanUrl = url.replace('https://', '').replace('http://', '').replaceAll('/', '');
+        let fileNameStr = "Report_" + currentMode + "_" + cleanUrl + ".pdf";
+
         const opt = {
             margin: [0.4, 0.4, 0.4, 0.4],
-            filename: \`Report_${currentMode}_${url.replace(/https?:\\/\\//, '').replace(/\\//g, '')}.pdf\`,
+            filename: fileNameStr,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2, useCORS: true, windowWidth: 1100 },
             jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
@@ -224,10 +221,12 @@ def home():
       if(!url) return;
       if(!url.startsWith('http')) url = 'https://' + url;
 
+      let modeText = currentMode === 'seo' ? 'Technical SEO Audit' : 'Deep Content Analysis';
+
       document.getElementById('out').innerHTML = `
         <div class="card" style="text-align:center; padding: 40px;">
             <div style="font-size: 18px; font-weight: 500; color: var(--text-muted);">
-                <span style="display:inline-block; animation: pulse 1.5s infinite;">Running ${currentMode === 'seo' ? 'Technical SEO Audit' : 'Deep Content Analysis'}...</span>
+                <span style="display:inline-block; animation: pulse 1.5s infinite;">Running ${modeText}...</span>
             </div>
         </div>
         <style>@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }</style>
@@ -235,7 +234,7 @@ def home():
 
       try {
           let endpoint = currentMode === 'seo' ? '/analyze' : '/analyze-content';
-          let res = await fetch(\`\${endpoint}?url=\${url}\`);
+          let res = await fetch(endpoint + '?url=' + encodeURIComponent(url));
           let data = await res.json();
 
           if (data.error) {
@@ -449,9 +448,15 @@ def home():
                 <div class="card">
                     <div class="card-title">Core Site Files Status</div>
                     <div>
-                        <div class="file-badge ${data.site_files.robots ? 'file-found' : 'file-missing'}">${data.site_files.robots ? '✓' : '✗'} robots.txt</div>
-                        <div class="file-badge ${data.site_files.sitemap ? 'file-found' : 'file-missing'}">${data.site_files.sitemap ? '✓' : '✗'} sitemap.xml</div>
-                        <div class="file-badge ${data.site_files.llms ? 'file-found' : 'file-missing'}">${data.site_files.llms ? '✓' : '✗'} llms.txt (AI Readiness)</div>
+                        <div class="file-badge ${data.site_files.robots ? 'file-found' : 'file-missing'}">
+                            ${data.site_files.robots ? '✓' : '✗'} robots.txt
+                        </div>
+                        <div class="file-badge ${data.site_files.sitemap ? 'file-found' : 'file-missing'}">
+                            ${data.site_files.sitemap ? '✓' : '✗'} sitemap.xml
+                        </div>
+                        <div class="file-badge ${data.site_files.llms ? 'file-found' : 'file-missing'}">
+                            ${data.site_files.llms ? '✓' : '✗'} llms.txt (AI Readiness)
+                        </div>
                     </div>
                 </div>
 
@@ -473,6 +478,30 @@ def home():
                             <div class="accordion-content">${renderList(data.images.missing_alt_urls)}</div>
                         </details>
                     `}
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Header Tags Architecture</div>
+                    <div style="margin-bottom: 20px;">
+                        <div style="font-weight: 600; background:#2563eb; color:white; display:inline-block; padding:2px 10px; border-radius:4px; font-size:12px; margin-bottom:10px;">H1 Tags (${data.content.h1_list.length})</div>
+                        ${data.content.h1_list.length ? data.content.h1_list.map((h, i) => `<div class="tag-box">${i+1}. ${h}</div>`).join('') : '<div class="tag-box" style="border-color:red;">Missing H1</div>'}
+                    </div>
+                    <div>
+                        <div style="font-weight: 600; background:#3b82f6; color:white; display:inline-block; padding:2px 10px; border-radius:4px; font-size:12px; margin-bottom:10px;">H2 Tags (${data.content.h2_list.length})</div>
+                        ${data.content.h2_list.length ? data.content.h2_list.map((h, i) => `<div class="tag-box">${i+1}. ${h}</div>`).join('') : '<div class="tag-box">No H2 tags found</div>'}
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Keyword & Phrase Extraction</div>
+                    <div class="phrase-header">Primary Keywords</div>
+                    <div class="badge-container">${renderBadges(data.keywords.top_1)}</div>
+                    <div class="phrase-header">2-Word Combinations</div>
+                    <div class="badge-container">${renderBadges(data.keywords.top_2)}</div>
+                    <div class="phrase-header">3-Word Combinations</div>
+                    <div class="badge-container">${renderBadges(data.keywords.top_3)}</div>
+                    <div class="phrase-header">4-Word Combinations</div>
+                    <div class="badge-container">${renderBadges(data.keywords.top_4)}</div>
                 </div>
             </div> `;
     }
@@ -620,6 +649,9 @@ def analyze(url: str):
         status_code = r.status_code
         final_url = r.url 
         
+        start_time = time.time()
+        load_time = round(time.time() - start_time, 2)
+
         html_size_kb = round(len(r.content) / 1024, 2)
         is_https = final_url.startswith("https")
         has_hsts = "strict-transport-security" in (k.lower() for k in r.headers.keys())
@@ -713,7 +745,7 @@ def analyze(url: str):
                 return {"score": "Timeout", "lcp": "Timeout", "cls": "Timeout", "inp": "Timeout", "responsive_pass": False}
 
         # REMEMBER TO PASTE YOUR REAL API KEY HERE!
-        apiKey = "AIzaSyA_YOUR_SECRET_KEY_HERE"
+        apiKey = "AIzaSyAJSIWD5LTnZK_yC4mKeyxw76COHxdESPU"
         
         with concurrent.futures.ThreadPoolExecutor() as executor:
             mobile_future = executor.submit(get_psi_data, url, "mobile", apiKey)
@@ -889,9 +921,6 @@ def analyze(url: str):
         on_page_score = max(0, on_page_score)
         technical_score = max(0, technical_score)
 
-        # Calculate a rough load time based on start_time if not using playwright
-        load_time = round(time.time() - start_time, 2)
-
         return {
             "js_rendered": js_rendered,
             "performance": {
@@ -997,7 +1026,6 @@ def analyze_content(url: str):
         stopwords = {"a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for", "with", "about", "by", "from", "of", "is", "are", "was", "were", "this", "that", "it", "not", "be", "your", "our", "you"}
         meaningful = [w for w in raw_words if w not in stopwords]
         
-        # Calculate phrases natively for the content tab
         def get_phrases(words, n, top_k):
             if len(words) < n: return []
             phrases = []
