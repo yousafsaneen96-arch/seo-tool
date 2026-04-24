@@ -36,14 +36,39 @@ def home():
     img { max-width: 100%; height: auto; }
     .container { max-width: 1100px; margin: 0 auto 50px auto; padding: 0 20px; }
     
-    /* Navigation Bar */
-    .top-nav { background: var(--card-bg); padding: 15px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 40px; position: sticky; top: 0; z-index: 100; }
-    .nav-container { max-width: 1100px; margin: 0 auto; display: flex; justify-content: center; gap: 15px; padding: 0 20px; }
-    .nav-btn { padding: 12px 24px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; border: 2px solid transparent; background: transparent; color: var(--text-muted); transition: all 0.3s ease; }
-    .nav-btn:hover { background: #f1f5f9; color: var(--text-main); }
-    .nav-btn.active { background: #eff6ff; color: var(--primary); border-color: #bfdbfe; }
+    /* Premium Floating Navigation Bar */
+    .top-nav { display: flex; justify-content: center; position: sticky; top: 20px; z-index: 100; margin-bottom: 40px; padding: 0 20px; }
+    .nav-container { 
+        background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(248,250,252,0.90)); 
+        padding: 8px; 
+        border-radius: 50px; 
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(226, 232, 240, 0.6); 
+        backdrop-filter: blur(12px); 
+        -webkit-backdrop-filter: blur(12px); 
+        display: inline-flex; 
+        gap: 5px; 
+    }
+    .nav-btn { 
+        font-family: 'Poppins', sans-serif; 
+        padding: 12px 32px; 
+        border-radius: 50px; 
+        font-size: 15px; 
+        font-weight: 600; 
+        cursor: pointer; 
+        border: none; 
+        background: transparent; 
+        color: var(--text-muted); 
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+    }
+    .nav-btn:hover { color: var(--text-main); background: rgba(241, 245, 249, 0.8); }
+    .nav-btn.active { 
+        background: linear-gradient(135deg, var(--primary), var(--secondary)); 
+        color: white; 
+        box-shadow: 0 4px 15px -3px rgba(59, 130, 246, 0.4); 
+        transform: translateY(-1px); 
+    }
 
-    .header-section { text-align: center; margin-bottom: 40px; }
+    .header-section { text-align: center; margin-bottom: 40px; margin-top: 20px; }
     h1 { font-size: 2.5rem; margin-bottom: 5px; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .brand { color: var(--text-muted); font-size: 14px; font-weight: 500; margin-bottom: 30px; }
     .search-box { display: flex; justify-content: center; gap: 15px; margin-bottom: 40px; }
@@ -71,6 +96,7 @@ def home():
     .metric-value { font-size: 1.5rem; font-weight: 700; color: var(--text-main); }
     .metric-name { font-size: 0.875rem; color: var(--text-muted); font-weight: 500;}
 
+    /* SERP Simulator */
     .serp-preview { background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; max-width: 650px; font-family: arial, sans-serif; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 20px; word-break: break-word; }
     .serp-url { color: #202124; font-size: 14px; margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
     .serp-title { color: #1a0dab; font-size: 20px; line-height: 1.3; margin-bottom: 4px; cursor: pointer; display: inline-block; }
@@ -84,6 +110,7 @@ def home():
     .char-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
     .meta-website-used { display: block; background: #f8fafc; padding: 10px 15px; border-radius: 6px; margin: 10px 0; font-size: 13px; color: var(--text-main); border: 1px solid #e2e8f0; word-break: break-word; white-space: normal; }
 
+    /* Expandable Accordions */
     details.accordion { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 15px; overflow: hidden; page-break-inside: avoid; break-inside: avoid; }
     details.accordion summary { padding: 15px 20px; font-weight: 600; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; transition: background 0.2s; }
     details.accordion summary:hover { background: #e2e8f0; }
@@ -97,6 +124,7 @@ def home():
     .cwv-item { display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
     .cwv-badge { padding: 2px 8px; font-size: 11px; font-weight: 700; border-radius: 4px; color: white; margin-left: 8px; }
 
+    /* Tags & Badges */
     .badge-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
     .tag-box { background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--primary); font-size: 14px; }
     .keyword-badge { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; padding: 6px 14px; border-radius: 50px; font-size: 13px; font-weight: 500; }
@@ -448,15 +476,9 @@ def home():
                 <div class="card">
                     <div class="card-title">Core Site Files Status</div>
                     <div>
-                        <div class="file-badge ${data.site_files.robots ? 'file-found' : 'file-missing'}">
-                            ${data.site_files.robots ? '✓' : '✗'} robots.txt
-                        </div>
-                        <div class="file-badge ${data.site_files.sitemap ? 'file-found' : 'file-missing'}">
-                            ${data.site_files.sitemap ? '✓' : '✗'} sitemap.xml
-                        </div>
-                        <div class="file-badge ${data.site_files.llms ? 'file-found' : 'file-missing'}">
-                            ${data.site_files.llms ? '✓' : '✗'} llms.txt (AI Readiness)
-                        </div>
+                        <div class="file-badge ${data.site_files.robots ? 'file-found' : 'file-missing'}">${data.site_files.robots ? '✓' : '✗'} robots.txt</div>
+                        <div class="file-badge ${data.site_files.sitemap ? 'file-found' : 'file-missing'}">${data.site_files.sitemap ? '✓' : '✗'} sitemap.xml</div>
+                        <div class="file-badge ${data.site_files.llms ? 'file-found' : 'file-missing'}">${data.site_files.llms ? '✓' : '✗'} llms.txt (AI Readiness)</div>
                     </div>
                 </div>
 
@@ -777,26 +799,29 @@ def analyze(url: str):
 
         raw_text_blocks = soup.get_text(separator="\n")
         
-        stopwords = {"a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for", "with", "about", "by", "from", "of", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "do", "does", "did", "will", "would", "shall", "should", "can", "could", "may", "might", "must", "it", "this", "that", "these", "those", "which", "who", "whom", "whose", "what", "how", "why", "where", "when", "we", "you", "they", "he", "she", "your", "our", "their", "my", "his", "her", "its", "not", "no", "all", "any", "some", "more", "most", "other", "such", "only", "own", "same", "so", "than", "too", "very", "one", "two", "also", "if", "then", "as", "out", "up", "down", "into", "over", "after", "us", "home", "faq", "login", "contact", "read"}
-
-        all_words_list = re.findall(r'\b[a-z]{2,}\b', raw_text_blocks.lower())
-        total_words = max(len(all_words_list), 1)
-
-        phrase_counts = {1: Counter(), 2: Counter(), 3: Counter(), 4: Counter()}
-
+        # --- REGIONAL ENTITY CONSOLIDATION APPLIED BEFORE REGEX ---
         regional_entities = {
             "abu dhabi": "abudhabi",
             "saudi arabia": "saudiarabia",
             "new york": "newyork",
             "sri lanka": "srilanka"
         }
+        
+        clean_text_lower = raw_text_blocks.lower()
+        for region, merged in regional_entities.items():
+            clean_text_lower = clean_text_lower.replace(region, merged)
 
-        for line in raw_text_blocks.split('\n'):
-            clean_line = line.lower()
-            for region, merged in regional_entities.items():
-                clean_line = clean_line.replace(region, merged)
-                
-            words_in_line = re.findall(r'\b[a-z]{2,}\b', clean_line)
+        # UNIFIED WORD EXTRACTION (Used in both endpoints now)
+        raw_words = re.findall(r'\b[a-z0-9]{2,}\b', clean_text_lower)
+        total_words = len(raw_words)
+
+        stopwords = {"a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for", "with", "about", "by", "from", "of", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had", "do", "does", "did", "will", "would", "shall", "should", "can", "could", "may", "might", "must", "it", "this", "that", "these", "those", "which", "who", "whom", "whose", "what", "how", "why", "where", "when", "we", "you", "they", "he", "she", "your", "our", "their", "my", "his", "her", "its", "not", "no", "all", "any", "some", "more", "most", "other", "such", "only", "own", "same", "so", "than", "too", "very", "one", "two", "also", "if", "then", "as", "out", "up", "down", "into", "over", "after", "us", "home", "faq", "login", "contact", "read"}
+
+        phrase_counts = {1: Counter(), 2: Counter(), 3: Counter(), 4: Counter()}
+
+        # Re-split by line to maintain n-gram boundaries (preventing cross-line merging)
+        for line in clean_text_lower.split('\n'):
+            words_in_line = re.findall(r'\b[a-z0-9]{2,}\b', line)
             if not words_in_line: continue
             
             for w in words_in_line:
@@ -824,8 +849,6 @@ def analyze(url: str):
             "top_3": format_phrases(phrase_counts[3], 3, 8),
             "top_4": format_phrases(phrase_counts[4], 4, 8)
         }
-
-        words = [w for w in soup.get_text(separator=" ").split() if len(w) > 2]
 
         images = soup.find_all("img")
         missing_alt = [urljoin(url, img.get("src")) for img in images if img.get("src") and not img.get("src").startswith("data:") and not img.get("alt")]
@@ -947,7 +970,7 @@ def analyze(url: str):
             "content": {
                 "title": title, "title_len": title_len,
                 "meta_description": meta_desc, "meta_desc_len": meta_desc_len,
-                "word_count": len(words), "h1_list": h1_list, "h2_list": h2_list
+                "word_count": total_words, "h1_list": h1_list, "h2_list": h2_list
             },
             "og_tags": og_tags,
             "keywords": top_keywords,
@@ -969,7 +992,21 @@ def analyze_content(url: str):
         r, soup, js_rendered = get_base_soup(url)
         
         text_clean = soup.get_text(separator=" ")
-        raw_words = re.findall(r'\b[a-zA-Z]{2,}\b', text_clean.lower())
+        
+        # --- REGIONAL ENTITY CONSOLIDATION APPLIED BEFORE REGEX ---
+        regional_entities = {
+            "abu dhabi": "abudhabi",
+            "saudi arabia": "saudiarabia",
+            "new york": "newyork",
+            "sri lanka": "srilanka"
+        }
+        
+        clean_text_lower = text_clean.lower()
+        for region, merged in regional_entities.items():
+            clean_text_lower = clean_text_lower.replace(region, merged)
+
+        # UNIFIED WORD EXTRACTION
+        raw_words = re.findall(r'\b[a-z0-9]{2,}\b', clean_text_lower)
         total_words = len(raw_words)
         
         if total_words == 0:
@@ -986,14 +1023,13 @@ def analyze_content(url: str):
 
         sentences = max(1, len(re.split(r'[.!?]+', text_clean)))
         def count_syllables(word):
-            word = word.lower()
             count = 0
             vowels = "aeiouy"
-            if word[0] in vowels: count += 1
+            if len(word) > 0 and word[0] in vowels: count += 1
             for index in range(1, len(word)):
                 if word[index] in vowels and word[index - 1] not in vowels: count += 1
             if word.endswith("e"): count -= 1
-            if count == 0: count += 1
+            if count <= 0: count = 1
             return count
         
         total_syllables = sum(count_syllables(w) for w in raw_words)
@@ -1023,7 +1059,7 @@ def analyze_content(url: str):
         has_contact_or_about = any("contact" in l.lower() or "about" in l.lower() for l in links)
         has_external = any(l.startswith("http") and urlparse(url).netloc not in l for l in links)
 
-        stopwords = {"a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for", "with", "about", "by", "from", "of", "is", "are", "was", "were", "this", "that", "it", "not", "be", "your", "our", "you"}
+        stopwords = {"a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for", "with", "about", "by", "from", "of", "is", "are", "was", "were", "this", "that", "it", "not", "be", "your", "our", "you", "they", "he", "she", "his", "her", "its"}
         meaningful = [w for w in raw_words if w not in stopwords]
         
         def get_phrases(words, n, top_k):
