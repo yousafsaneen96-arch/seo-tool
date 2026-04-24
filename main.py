@@ -29,11 +29,20 @@ def home():
         --success: #10b981;
         --warning: #f59e0b;
         --danger: #ef4444;
+        --purple: #8b5cf6;
     }
 
     body { margin: 0; font-family: 'Poppins', sans-serif; background-color: var(--bg-color); color: var(--text-main); }
     img { max-width: 100%; height: auto; }
-    .container { max-width: 1100px; margin: 50px auto; padding: 0 20px; }
+    .container { max-width: 1100px; margin: 0 auto 50px auto; padding: 0 20px; }
+    
+    /* Navigation Bar */
+    .top-nav { background: var(--card-bg); padding: 15px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 40px; position: sticky; top: 0; z-index: 100; }
+    .nav-container { max-width: 1100px; margin: 0 auto; display: flex; justify-content: center; gap: 15px; padding: 0 20px; }
+    .nav-btn { padding: 12px 24px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; border: 2px solid transparent; background: transparent; color: var(--text-muted); transition: all 0.3s ease; }
+    .nav-btn:hover { background: #f1f5f9; color: var(--text-main); }
+    .nav-btn.active { background: #eff6ff; color: var(--primary); border-color: #bfdbfe; }
+
     .header-section { text-align: center; margin-bottom: 40px; }
     h1 { font-size: 2.5rem; margin-bottom: 5px; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .brand { color: var(--text-muted); font-size: 14px; font-weight: 500; margin-bottom: 30px; }
@@ -42,13 +51,11 @@ def home():
     input:focus { border-color: var(--primary); box-shadow: 0 10px 25px -3px rgba(59, 130, 246, 0.2); }
     button.primary-btn { padding: 16px 32px; background: linear-gradient(135deg, var(--primary), var(--secondary)); background-size: 200% auto; border: none; border-radius: 50px; color: white; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3); transition: all 0.4s ease; }
     button.primary-btn:hover { background-position: right center; transform: translateY(-2px); }
-    
     button.pdf-btn { padding: 10px 24px; background: #1e293b; border: none; border-radius: 8px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.3s; display: flex; align-items: center; gap: 8px; }
     button.pdf-btn:hover { background: #334155; }
 
-    /* Added page-break-inside to prevent cards splitting in PDF */
     .card { background: var(--card-bg); border-radius: 20px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03); transition: transform 0.3s ease, box-shadow 0.3s ease; border: 1px solid #f1f5f9; overflow: hidden; page-break-inside: avoid; break-inside: avoid; }
-    .card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
     .card-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 20px; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
 
     .scores-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; margin-bottom: 25px; }
@@ -64,6 +71,7 @@ def home():
     .metric-value { font-size: 1.5rem; font-weight: 700; color: var(--text-main); }
     .metric-name { font-size: 0.875rem; color: var(--text-muted); font-weight: 500;}
 
+    /* SERP Simulator */
     .serp-preview { background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; max-width: 650px; font-family: arial, sans-serif; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 20px; word-break: break-word; }
     .serp-url { color: #202124; font-size: 14px; margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
     .serp-title { color: #1a0dab; font-size: 20px; line-height: 1.3; margin-bottom: 4px; cursor: pointer; display: inline-block; }
@@ -77,6 +85,7 @@ def home():
     .char-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
     .meta-website-used { display: block; background: #f8fafc; padding: 10px 15px; border-radius: 6px; margin: 10px 0; font-size: 13px; color: var(--text-main); border: 1px solid #e2e8f0; word-break: break-word; white-space: normal; }
 
+    /* Expandable Accordions */
     details.accordion { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 15px; overflow: hidden; page-break-inside: avoid; break-inside: avoid; }
     details.accordion summary { padding: 15px 20px; font-weight: 600; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; transition: background 0.2s; }
     details.accordion summary:hover { background: #e2e8f0; }
@@ -86,10 +95,12 @@ def home():
     .url-list-item { padding: 6px 0; border-bottom: 1px solid #f1f5f9; }
     .url-list-item:last-child { border-bottom: none; }
 
+    /* CWV Card */
     .cwv-subgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 15px; }
     .cwv-item { display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
     .cwv-badge { padding: 2px 8px; font-size: 11px; font-weight: 700; border-radius: 4px; color: white; margin-left: 8px; }
 
+    /* Tags & Badges */
     .badge-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
     .file-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 50px; font-size: 14px; font-weight: 600; margin-right: 10px; margin-bottom: 10px; }
     .file-found { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
@@ -110,7 +121,7 @@ def home():
     .social-text p { margin: 0; font-size: 14px; color: var(--text-muted); }
     
     .audit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-    .audit-item { display: flex; align-items: flex-start; gap: 12px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; page-break-inside: avoid; break-inside: avoid; }
+    .audit-item { display: flex; align-items: flex-start; gap: 12px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
     .audit-icon { font-size: 18px; margin-top: 2px; }
     .audit-pass { color: var(--success); }
     .audit-fail { color: var(--danger); }
@@ -118,31 +129,59 @@ def home():
     .audit-details p { margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.4; }
     
     .issues-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 25px; }
-    .issue-panel { background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid var(--danger); padding: 20px; border-radius: 8px; page-break-inside: avoid; break-inside: avoid; }
-    .issue-panel h3 { margin: 0 0 15px 0; color: #991b1b; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+    .issue-panel { background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid var(--danger); padding: 20px; border-radius: 8px; }
+    .issue-panel h3 { margin: 0 0 15px 0; color: #991b1b; font-size: 16px; margin-bottom: 8px;}
     .issue-panel ul { margin: 0; padding-left: 20px; }
     .issue-panel li { color: #991b1b; margin-bottom: 8px; font-size: 14px; }
 
-    /* Watermark for PDF only */
+    /* Content Specific UI */
+    .content-highlight { color: var(--purple); font-weight: 600; }
+    .ai-placeholder { background: #fdf4ff; border: 1px dashed #f0abfc; padding: 20px; border-radius: 8px; text-align: center; color: #a21caf; font-size: 14px; }
+    .intent-box { display: inline-block; padding: 6px 12px; background: #f3e8ff; color: #7e22ce; border-radius: 6px; font-weight: 600; font-size: 14px; border: 1px solid #e879f9; }
+
     .pdf-header { display: none; text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
     .pdf-header h2 { color: var(--primary); margin: 0; font-size: 28px; }
     .pdf-header p { color: var(--text-muted); margin: 5px 0 0 0; font-size: 14px; }
-
     </style>
+
+    <div class="top-nav">
+        <div class="nav-container">
+            <button class="nav-btn active" id="tab-seo" onclick="switchTab('seo')">SEO Audit</button>
+            <button class="nav-btn" id="tab-content" onclick="switchTab('content')">Content Checker</button>
+        </div>
+    </div>
 
     <div class="container">
       <div class="header-section">
-          <h1>SEO Analyzer Pro</h1>
+          <h1 id="app-title">SEO Analyzer Pro</h1>
           <div class="brand">Built by Yousaf Saneen</div>
           <div class="search-box">
               <input id='url' placeholder='https://example.com/'>
-              <button class="primary-btn" onclick='run()'>Analyze Website</button>
+              <button class="primary-btn" id="analyze-btn" onclick='run()'>Run SEO Audit</button>
           </div>
       </div>
       <div id='out'></div>
     </div>
 
     <script>
+    let currentMode = 'seo';
+
+    function switchTab(mode) {
+        currentMode = mode;
+        document.getElementById('tab-seo').classList.remove('active');
+        document.getElementById('tab-content').classList.remove('active');
+        document.getElementById('tab-' + mode).classList.add('active');
+        
+        if (mode === 'seo') {
+            document.getElementById('app-title').innerHTML = 'SEO Analyzer <span style="color:var(--primary)">Pro</span>';
+            document.getElementById('analyze-btn').innerText = 'Run SEO Audit';
+        } else {
+            document.getElementById('app-title').innerHTML = 'Content <span style="color:var(--purple)">Checker</span>';
+            document.getElementById('analyze-btn').innerText = 'Analyze Content';
+        }
+        document.getElementById('out').innerHTML = '';
+    }
+
     function getScoreColor(score) {
         if(score >= 90) return '#10b981';
         if(score >= 70) return '#f59e0b';
@@ -168,23 +207,16 @@ def home():
 
     function downloadPDF(url) {
         const element = document.getElementById('report-container');
-        
-        // Temporarily show the PDF header
         const header = document.getElementById('pdf-header');
         header.style.display = 'block';
-
         const opt = {
-            margin:       [0.4, 0.4, 0.4, 0.4],
-            filename:     \`SEO_Audit_${url.replace(/https?:\\/\\//, '').replace(/\\//g, '')}.pdf\`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, windowWidth: 1100 },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            margin: [0.4, 0.4, 0.4, 0.4],
+            filename: \`Report_${currentMode}_${url.replace(/https?:\\/\\//, '').replace(/\\//g, '')}.pdf\`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, windowWidth: 1100 },
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
         };
-
-        // Generate PDF, then hide header again
-        html2pdf().set(opt).from(element).save().then(() => {
-            header.style.display = 'none';
-        });
+        html2pdf().set(opt).from(element).save().then(() => { header.style.display = 'none'; });
     }
 
     async function run(){
@@ -195,14 +227,15 @@ def home():
       document.getElementById('out').innerHTML = `
         <div class="card" style="text-align:center; padding: 40px;">
             <div style="font-size: 18px; font-weight: 500; color: var(--text-muted);">
-                <span style="display:inline-block; animation: pulse 1.5s infinite;">Running parallel technical audits and fetching PageSpeed APIs...</span>
+                <span style="display:inline-block; animation: pulse 1.5s infinite;">Running ${currentMode === 'seo' ? 'Technical SEO Audit' : 'Deep Content Analysis'}...</span>
             </div>
         </div>
         <style>@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }</style>
       `;
 
       try {
-          let res = await fetch(`/analyze?url=${url}`);
+          let endpoint = currentMode === 'seo' ? '/analyze' : '/analyze-content';
+          let res = await fetch(\`\${endpoint}?url=\${url}\`);
           let data = await res.json();
 
           if (data.error) {
@@ -210,32 +243,28 @@ def home():
             return;
           }
 
-          let onPageColor = getScoreColor(data.scores.on_page);
-          let techColor = getScoreColor(data.scores.technical);
-          
-          let speedScores = { 'mobile': 0, 'desktop': 0 };
-          let speedColors = { 'mobile': '#cbd5e1', 'desktop': '#cbd5e1' };
-
-          if (typeof data.performance.mobile.score === 'number') {
-              speedScores.mobile = data.performance.mobile.score;
-              speedColors.mobile = getScoreColor(speedScores.mobile);
+          if (currentMode === 'seo') {
+              renderSEO(data, url);
+          } else {
+              renderContent(data, url);
           }
-          if (typeof data.performance.desktop.score === 'number') {
-              speedScores.desktop = data.performance.desktop.score;
-              speedColors.desktop = getScoreColor(speedScores.desktop);
-          }
+      } catch (err) {
+          document.getElementById('out').innerHTML = `<div class="card" style="text-align:center; color:red;">Failed to fetch analysis. Check server logs.</div>`;
+      }
+    }
 
-          document.getElementById('out').innerHTML = `
+    function renderSEO(data, url) {
+        let onPageColor = getScoreColor(data.scores.on_page);
+        let techColor = getScoreColor(data.scores.technical);
+        let speedScores = { 'mobile': data.performance.mobile.score || 0, 'desktop': data.performance.desktop.score || 0 };
+
+        document.getElementById('out').innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
                 <h2 style="margin: 0; color: var(--text-main); font-size: 1.5rem;">Audit Results for ${url}</h2>
-                <button class="pdf-btn" onclick="downloadPDF('${url}')">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    Download PDF Report
-                </button>
+                <button class="pdf-btn" onclick="downloadPDF('${url}')">Download PDF Report</button>
             </div>
-
+            
             <div id="report-container" style="background: var(--bg-color); padding: 10px;">
-                
                 <div id="pdf-header" class="pdf-header">
                     <h2>SEO Analyzer Pro</h2>
                     <p>Comprehensive Audit Report generated for <b>${url}</b></p>
@@ -258,15 +287,15 @@ def home():
                         <div class="score-sublabel">Security & Indexing</div>
                     </div>
                     <div class="card score-card" style="margin-bottom:0;">
-                        <div class="score-circle" style="background: conic-gradient(${speedColors.mobile} ${speedScores.mobile}%, #e2e8f0 0);">
-                            <span style="color: ${speedColors.mobile}">${speedScores.mobile > 0 ? speedScores.mobile : 'F'}</span>
+                        <div class="score-circle" style="background: conic-gradient(${getScoreColor(speedScores.mobile)} ${speedScores.mobile}%, #e2e8f0 0);">
+                            <span style="color: ${getScoreColor(speedScores.mobile)}">${speedScores.mobile > 0 ? speedScores.mobile : 'F'}</span>
                         </div>
                         <div class="score-label">Mobile Speed</div>
                         <div class="score-sublabel">Lighthouse Score</div>
                     </div>
                     <div class="card score-card" style="margin-bottom:0;">
-                        <div class="score-circle" style="background: conic-gradient(${speedColors.desktop} ${speedScores.desktop}%, #e2e8f0 0);">
-                            <span style="color: ${speedColors.desktop}">${speedScores.desktop > 0 ? speedScores.desktop : 'F'}</span>
+                        <div class="score-circle" style="background: conic-gradient(${getScoreColor(speedScores.desktop)} ${speedScores.desktop}%, #e2e8f0 0);">
+                            <span style="color: ${getScoreColor(speedScores.desktop)}">${speedScores.desktop > 0 ? speedScores.desktop : 'F'}</span>
                         </div>
                         <div class="score-label">Desktop Speed</div>
                         <div class="score-sublabel">Lighthouse Score</div>
@@ -311,127 +340,66 @@ def home():
                 <div class="card">
                     <div class="card-title">Page Overview ${data.js_rendered ? '<span style="font-size:12px; background:#f59e0b; color:white; padding:4px 8px; border-radius:4px; margin-left:10px;">JS Rendered</span>' : ''}</div>
                     <div class="metrics-grid">
-                        <div class="metric-box">
-                            <div><div class="metric-value">${data.links.internal_count}</div><div class="metric-name">Internal Links</div></div>
-                        </div>
-                        <div class="metric-box">
-                            <div><div class="metric-value">${data.links.external_count}</div><div class="metric-name">External Links</div></div>
-                        </div>
-                        <div class="metric-box">
-                            <div><div class="metric-value">${data.images.total}</div><div class="metric-name">Images</div></div>
-                        </div>
-                        <div class="metric-box">
-                            <div><div class="metric-value">${data.content.word_count}</div><div class="metric-name">Words Processed</div></div>
-                        </div>
-                        <div class="metric-box">
-                            <div><div class="metric-value">${data.server.load_time_seconds}s</div><div class="metric-name">Server Response</div></div>
-                        </div>
-                        <div class="metric-box">
-                            <div><div class="metric-value">${data.server.status_code}</div><div class="metric-name">HTTP Status</div></div>
-                        </div>
+                        <div class="metric-box"><div><div class="metric-value">${data.links.internal_count}</div><div class="metric-name">Internal Links</div></div></div>
+                        <div class="metric-box"><div><div class="metric-value">${data.links.external_count}</div><div class="metric-name">External Links</div></div></div>
+                        <div class="metric-box"><div><div class="metric-value">${data.images.total}</div><div class="metric-name">Images</div></div></div>
+                        <div class="metric-box"><div><div class="metric-value">${data.content.word_count}</div><div class="metric-name">Words Processed</div></div></div>
+                        <div class="metric-box"><div><div class="metric-value">${data.server.load_time_seconds}s</div><div class="metric-name">Server Response</div></div></div>
+                        <div class="metric-box"><div><div class="metric-value">${data.server.status_code}</div><div class="metric-name">HTTP Status</div></div></div>
                     </div>
                 </div>
 
                 <div class="card">
                     <div class="card-title">Technical & Security Audits</div>
                     <div class="audit-grid">
-                        
                         <div class="audit-item">
                             <div class="audit-icon ${data.technical.https ? 'audit-pass' : 'audit-fail'}">${data.technical.https ? '✅' : '❌'}</div>
-                            <div class="audit-details">
-                                <h4>SSL Checker and HTTPS</h4>
-                                <p>${data.technical.https ? 'Website is successfully using HTTPS, a secure communication protocol.' : 'Warning: Website is not using HTTPS securely.'}</p>
-                            </div>
+                            <div class="audit-details"><h4>SSL Checker and HTTPS</h4><p>${data.technical.https ? 'Website is successfully using HTTPS, a secure communication protocol.' : 'Warning: Website is not using HTTPS securely.'}</p></div>
                         </div>
-                        
                         <div class="audit-item">
                             <div class="audit-icon ${data.technical.hsts ? 'audit-pass' : 'audit-fail'}">${data.technical.hsts ? '✅' : '❌'}</div>
-                            <div class="audit-details">
-                                <h4>HSTS Test</h4>
-                                <p>${data.technical.hsts ? 'Website is using Strict-Transport-Security to force secure connections.' : 'Website is not using the Strict-Transport-Security header.'}</p>
-                            </div>
+                            <div class="audit-details"><h4>HSTS Test</h4><p>${data.technical.hsts ? 'Website is using Strict-Transport-Security to force secure connections.' : 'Website is not using the Strict-Transport-Security header.'}</p></div>
                         </div>
-
                         <div class="audit-item">
                             <div class="audit-icon ${data.technical.html_size_kb <= 100 ? 'audit-pass' : 'audit-fail'}">${data.technical.html_size_kb <= 100 ? '✅' : '❌'}</div>
-                            <div class="audit-details">
-                                <h4>HTML Page Size Test</h4>
-                                <p>The size of this HTML document is <b>${data.technical.html_size_kb} Kb</b>.</p>
-                            </div>
+                            <div class="audit-details"><h4>HTML Page Size Test</h4><p>The size of this HTML document is <b>${data.technical.html_size_kb} Kb</b>.</p></div>
                         </div>
-
                         <div class="audit-item">
                             <div class="audit-icon ${data.technical.has_schema ? 'audit-pass' : 'audit-fail'}">${data.technical.has_schema ? '✅' : '❌'}</div>
-                            <div class="audit-details">
-                                <h4>Schema.org Structured Data</h4>
-                                <p>${data.technical.has_schema ? 'Using JSON-LD or Microdata Schema to help search engines understand content.' : 'Missing Schema structured data markup.'}</p>
-                            </div>
+                            <div class="audit-details"><h4>Schema.org Structured Data</h4><p>${data.technical.has_schema ? 'Using JSON-LD or Microdata Schema.' : 'Missing Schema markup.'}</p></div>
                         </div>
-
                         <div class="audit-item">
                             <div class="audit-icon ${data.technical.has_ga ? 'audit-pass' : 'audit-fail'}">${data.technical.has_ga ? '✅' : '❌'}</div>
-                            <div class="audit-details">
-                                <h4>Google Analytics Test</h4>
-                                <p>${data.technical.has_ga ? 'Google tracking scripts detected on the webpage.' : 'No Google Analytics scripts detected.'}</p>
-                            </div>
+                            <div class="audit-details"><h4>Google Analytics Test</h4><p>${data.technical.has_ga ? 'Google tracking scripts detected.' : 'No Google Analytics scripts detected.'}</p></div>
                         </div>
-
                         <div class="audit-item">
                             <div class="audit-icon ${data.technical.has_favicon ? 'audit-pass' : 'audit-fail'}">${data.technical.has_favicon ? '✅' : '❌'}</div>
-                            <div class="audit-details">
-                                <h4>Favicon Test</h4>
-                                <p>${data.technical.has_favicon ? 'This website appears to have a valid favicon.' : 'No favicon link tag found.'}</p>
-                            </div>
+                            <div class="audit-details"><h4>Favicon Test</h4><p>${data.technical.has_favicon ? 'Valid favicon found.' : 'No favicon link tag found.'}</p></div>
                         </div>
-
                         <div class="audit-item">
                             <div class="audit-icon ${data.technical.lang_attr ? 'audit-pass' : 'audit-fail'}">${data.technical.lang_attr ? '✅' : '❌'}</div>
-                            <div class="audit-details">
-                                <h4>Language Attribute</h4>
-                                <p>${data.technical.lang_attr ? `Page is using the Lang Attribute (Declared: ${data.technical.lang_attr}).` : 'Missing HTML lang attribute for international SEO.'}</p>
-                            </div>
+                            <div class="audit-details"><h4>Language Attribute</h4><p>${data.technical.lang_attr ? `Page is using the Lang Attribute (${data.technical.lang_attr}).` : 'Missing HTML lang attribute.'}</p></div>
                         </div>
-
                         <div class="audit-item">
                             <div class="audit-icon ${data.technical.has_hreflang ? 'audit-pass' : 'audit-fail'}">${data.technical.has_hreflang ? '✅' : '❌'}</div>
-                            <div class="audit-details">
-                                <h4>Hreflang Usage</h4>
-                                <p>${data.technical.has_hreflang ? 'Page makes use of Hreflang attributes for multi-region targeting.' : 'Page is not making use of Hreflang attributes.'}</p>
-                            </div>
+                            <div class="audit-details"><h4>Hreflang Usage</h4><p>${data.technical.has_hreflang ? 'Page makes use of Hreflang attributes.' : 'Page is not making use of Hreflang attributes.'}</p></div>
                         </div>
-
                         <div class="audit-item">
                             <div class="audit-icon ${data.technical.responsive_images_pass ? 'audit-pass' : 'audit-fail'}">${data.technical.responsive_images_pass ? '✅' : '❌'}</div>
-                            <div class="audit-details">
-                                <h4>Responsive Image Test</h4>
-                                <p>${data.technical.responsive_images_pass ? 'Images are properly sized and optimized for different viewports.' : 'Warning: Website is serving images larger than needed for the viewport.'}</p>
-                            </div>
+                            <div class="audit-details"><h4>Responsive Image Test</h4><p>${data.technical.responsive_images_pass ? 'Images are properly sized.' : 'Warning: Serving images larger than needed.'}</p></div>
                         </div>
-
                         <div class="audit-item">
                             <div class="audit-icon ${data.technical.canonical_pass ? 'audit-pass' : 'audit-fail'}">${data.technical.canonical_pass ? '✅' : '❌'}</div>
-                            <div class="audit-details">
-                                <h4>Canonical Tag Test</h4>
-                                <p>${data.technical.canonical_pass ? 'Website is using the canonical link tag to specify the preferred URL.' : 'Missing canonical link tag.'}</p>
-                            </div>
+                            <div class="audit-details"><h4>Canonical Tag Test</h4><p>${data.technical.canonical_pass ? 'Website is using the canonical link tag.' : 'Missing canonical link tag.'}</p></div>
                         </div>
-
                         <div class="audit-item">
                             <div class="audit-icon ${data.technical.noindex_pass ? 'audit-pass' : 'audit-fail'}">${data.technical.noindex_pass ? '✅' : '❌'}</div>
-                            <div class="audit-details">
-                                <h4>Noindex Tag Test</h4>
-                                <p>${data.technical.noindex_pass ? 'This webpage does not use the noindex meta tag. It can be indexed.' : 'Search engines are blocked by a noindex tag.'}</p>
-                            </div>
+                            <div class="audit-details"><h4>Noindex Tag Test</h4><p>${data.technical.noindex_pass ? 'Page does not use noindex. It can be indexed.' : 'Blocked by noindex tag.'}</p></div>
                         </div>
-
                         <div class="audit-item">
                             <div class="audit-icon ${data.technical.www_resolve ? 'audit-pass' : 'audit-fail'}">${data.technical.www_resolve ? '✅' : '❌'}</div>
-                            <div class="audit-details">
-                                <h4>URL Canonicalization Test</h4>
-                                <p>${data.technical.www_resolve ? 'WWW and non-WWW URLs correctly resolve to the same location.' : 'Warning: WWW and non-WWW versions do not automatically redirect.'}</p>
-                            </div>
+                            <div class="audit-details"><h4>URL Canonicalization</h4><p>${data.technical.www_resolve ? 'WWW and non-WWW correctly resolve.' : 'Warning: WWW/non-WWW do not redirect.'}</p></div>
                         </div>
-
                     </div>
                 </div>
 
@@ -447,16 +415,14 @@ def home():
                             <div class="card-title" style="font-size: 15px; margin-bottom: 5px;">Website Used Meta Title</div>
                             <span class="meta-website-used">${data.content.title}</span>
                             <div class="char-status ${data.content.title_len > 10 && data.content.title_len <= 60 ? 'char-ok' : 'char-error'}">
-                                <div class="char-val">${data.content.title_len}</div>
-                                Title Characters Used (Optimal: 50-60 Characters)
+                                <div class="char-val">${data.content.title_len}</div>Title Characters Used (Optimal: 50-60)
                             </div>
                         </div>
                         <div>
                             <div class="card-title" style="font-size: 15px; margin-bottom: 5px;">Website Used Meta Description</div>
                             <span class="meta-website-used">${data.content.meta_description}</span>
                             <div class="char-status ${data.content.meta_desc_len > 50 && data.content.meta_desc_len <= 160 ? 'char-ok' : 'char-error'}">
-                                <div class="char-val">${data.content.meta_desc_len}</div>
-                                Description Characters Used (Optimal: 150-160 Characters)
+                                <div class="char-val">${data.content.meta_desc_len}</div>Description Characters Used (Optimal: 150-160)
                             </div>
                         </div>
                     </div>
@@ -483,31 +449,22 @@ def home():
                 <div class="card">
                     <div class="card-title">Core Site Files Status</div>
                     <div>
-                        <div class="file-badge ${data.site_files.robots ? 'file-found' : 'file-missing'}">
-                            ${data.site_files.robots ? '✓' : '✗'} robots.txt
-                        </div>
-                        <div class="file-badge ${data.site_files.sitemap ? 'file-found' : 'file-missing'}">
-                            ${data.site_files.sitemap ? '✓' : '✗'} sitemap.xml
-                        </div>
-                        <div class="file-badge ${data.site_files.llms ? 'file-found' : 'file-missing'}">
-                            ${data.site_files.llms ? '✓' : '✗'} llms.txt (AI Readiness)
-                        </div>
+                        <div class="file-badge ${data.site_files.robots ? 'file-found' : 'file-missing'}">${data.site_files.robots ? '✓' : '✗'} robots.txt</div>
+                        <div class="file-badge ${data.site_files.sitemap ? 'file-found' : 'file-missing'}">${data.site_files.sitemap ? '✓' : '✗'} sitemap.xml</div>
+                        <div class="file-badge ${data.site_files.llms ? 'file-found' : 'file-missing'}">${data.site_files.llms ? '✓' : '✗'} llms.txt (AI Readiness)</div>
                     </div>
                 </div>
 
                 <div class="card">
                     <div class="card-title">Deep Link & Image Extraction</div>
-                    
                     <details class="accordion">
                         <summary>Internal Links (${data.links.internal_count} found)</summary>
                         <div class="accordion-content">${renderList(data.links.internal_urls)}</div>
                     </details>
-
                     <details class="accordion">
                         <summary>External Links (${data.links.external_count} found)</summary>
                         <div class="accordion-content">${renderList(data.links.external_urls)}</div>
                     </details>
-
                     ${data.images.missing_alt_count === 0 ? `
                         <div class="file-badge file-found" style="width:100%; border-radius:8px; display:block; text-align:center; box-sizing: border-box;">✓ No missing alt text found</div>
                     ` : `
@@ -517,47 +474,149 @@ def home():
                         </details>
                     `}
                 </div>
-
-                <div class="card">
-                    <div class="card-title">Header Tags Architecture</div>
-                    <div style="margin-bottom: 20px;">
-                        <div style="font-weight: 600; background:#2563eb; color:white; display:inline-block; padding:2px 10px; border-radius:4px; font-size:12px; margin-bottom:10px;">H1 Tags (${data.content.h1_list.length})</div>
-                        ${data.content.h1_list.length ? data.content.h1_list.map((h, i) => `<div class="tag-box">${i+1}. ${h}</div>`).join('') : '<div class="tag-box" style="border-color:red;">Missing H1</div>'}
-                    </div>
-                    <div>
-                        <div style="font-weight: 600; background:#3b82f6; color:white; display:inline-block; padding:2px 10px; border-radius:4px; font-size:12px; margin-bottom:10px;">H2 Tags (${data.content.h2_list.length})</div>
-                        ${data.content.h2_list.length ? data.content.h2_list.map((h, i) => `<div class="tag-box">${i+1}. ${h}</div>`).join('') : '<div class="tag-box">No H2 tags found</div>'}
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-title">Keyword & Phrase Extraction</div>
-                    <div class="phrase-header">Primary Keywords</div>
-                    <div class="badge-container">${renderBadges(data.keywords.top_1)}</div>
-                    <div class="phrase-header">2-Word Combinations</div>
-                    <div class="badge-container">${renderBadges(data.keywords.top_2)}</div>
-                    <div class="phrase-header">3-Word Combinations</div>
-                    <div class="badge-container">${renderBadges(data.keywords.top_3)}</div>
-                    <div class="phrase-header">4-Word Combinations</div>
-                    <div class="badge-container">${renderBadges(data.keywords.top_4)}</div>
-                </div>
             </div> `;
-      } catch (err) {
-          document.getElementById('out').innerHTML = `<div class="card" style="text-align:center; color:red;">Failed to fetch analysis. Check server logs.</div>`;
-      }
+    }
+
+    function renderContent(data, url) {
+        let contentScoreColor = getScoreColor(data.content_score);
+        
+        document.getElementById('out').innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h2 style="margin: 0; color: var(--text-main); font-size: 1.5rem;">Content Checker Results</h2>
+                <button class="pdf-btn" onclick="downloadPDF('${url}')">Download PDF Report</button>
+            </div>
+            
+            <div id="report-container" style="background: var(--bg-color); padding: 10px;">
+                <div id="pdf-header" class="pdf-header">
+                    <h2 style="color:var(--purple)">Content Checker</h2>
+                    <p>Content Audit generated for <b>${url}</b></p>
+                </div>
+
+                <div class="scores-grid">
+                    <div class="card score-card" style="margin-bottom:0;">
+                        <div class="score-circle" style="background: conic-gradient(${contentScoreColor} ${data.content_score}%, #e2e8f0 0);">
+                            <span style="color: ${contentScoreColor}">${data.content_score}</span>
+                        </div>
+                        <div class="score-label">Content Score</div>
+                        <div class="score-sublabel">Overall Quality</div>
+                    </div>
+                    <div class="card score-card" style="margin-bottom:0;">
+                        <div style="font-size: 32px; font-weight:700; color:var(--purple); margin-bottom:10px;">${data.word_count}</div>
+                        <div class="score-label">Total Words</div>
+                    </div>
+                    <div class="card score-card" style="margin-bottom:0;">
+                        <div style="font-size: 24px; font-weight:700; color:var(--secondary); margin-bottom:10px;">${data.readability.level}</div>
+                        <div class="score-label">Readability Level</div>
+                        <div class="score-sublabel">Flesch Score: ${data.readability.score}</div>
+                    </div>
+                    <div class="card score-card" style="margin-bottom:0;">
+                        <div class="intent-box">${data.intent.primary_intent}</div>
+                        <div class="score-label" style="margin-top:15px;">Search Intent</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">E-E-A-T & Trust Signals</div>
+                    <div class="audit-grid">
+                        <div class="audit-item"><div class="audit-icon">${data.eeat.has_author ? '✅' : '⚠️'}</div><div class="audit-details"><h4>Author Entity</h4><p>${data.eeat.has_author ? 'Author tags or classes detected.' : 'No clear author identified.'}</p></div></div>
+                        <div class="audit-item"><div class="audit-icon">${data.eeat.has_contact_or_about ? '✅' : '⚠️'}</div><div class="audit-details"><h4>Business Transparency</h4><p>${data.eeat.has_contact_or_about ? 'Contact/About pages linked.' : 'Missing trust pages.'}</p></div></div>
+                        <div class="audit-item"><div class="audit-icon">${data.eeat.has_external_links ? '✅' : '⚠️'}</div><div class="audit-details"><h4>External Citations</h4><p>${data.eeat.has_external_links ? 'Page links to external sources.' : 'No outbound links found.'}</p></div></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Heading Hierarchy (H1 - H6)</div>
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        ${Object.keys(data.headings).map(tag => {
+                            if(data.headings[tag].length === 0) return '';
+                            return `
+                            <div>
+                                <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:12px; font-weight:bold; margin-right:10px; display:inline-block; width:25px; text-align:center;">${tag.toUpperCase()}</span>
+                                <span style="font-size:14px; color:var(--text-muted);">${data.headings[tag].length} tags found</span>
+                                <div style="margin-top:5px; padding-left:45px;">
+                                    ${data.headings[tag].slice(0, 5).map(h => `<div style="font-size:13px; margin-bottom:3px;">• ${h}</div>`).join('')}
+                                    ${data.headings[tag].length > 5 ? `<div style="font-size:12px; color:var(--primary); font-style:italic;">+ ${data.headings[tag].length - 5} more...</div>` : ''}
+                                </div>
+                            </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">NLP & Keyword Density Analysis</div>
+                    <div class="phrase-header">Primary Content Keywords</div>
+                    <div class="badge-container">${renderBadges(data.keywords.top_1)}</div>
+                    <div class="phrase-header">LSI / Contextual Phrases (2-3 Words)</div>
+                    <div class="badge-container">${renderBadges(data.keywords.top_2)}</div>
+                    <div class="badge-container">${renderBadges(data.keywords.top_3)}</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Intent Optimization Tips</div>
+                    <div style="background: #f8fafc; padding: 15px; border-radius: 8px; font-size: 14px; border-left: 4px solid var(--purple);">
+                        Based on the primary intent (<b>${data.intent.primary_intent}</b>), ensure this page includes:
+                        <ul style="margin-top: 10px; margin-bottom: 0;">
+                            ${data.intent.tips.map(tip => `<li>${tip}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">AI & Plagiarism Checks</div>
+                    <div class="audit-grid">
+                        <div class="audit-item">
+                            <div class="audit-icon">🔍</div>
+                            <div class="audit-details">
+                                <h4>Heuristic Duplicate Content</h4>
+                                <p>Structural repetition score: <b>${data.ai_plagiarism.heuristic_repetition_score}%</b>. (Scores over 20% suggest heavy boilerplate).</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ai-placeholder" style="margin-top: 20px;">
+                        <b>Advanced API Needed:</b> To unlock true <b>AI Content Detection</b> and strict <b>Plagiarism Sweeps</b>, API integration (e.g. OpenAI/Copyscape) is required.
+                    </div>
+                </div>
+            </div>
+        `;
     }
     </script>
     """
 
+def get_base_soup(url):
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"}
+    r = requests.get(url, headers=headers, timeout=15, allow_redirects=True)
+    soup = BeautifulSoup(r.text, "html.parser")
+    for s in soup(["script", "style", "noscript", "svg"]):
+        s.extract()
+    
+    text = soup.get_text(separator="\n")
+    words = [w for w in text.split() if len(w) > 2]
+    
+    js_rendered = False
+    if len(words) < 200:
+        try:
+            from playwright.sync_api import sync_playwright
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                page = browser.new_page()
+                page.goto(url, timeout=60000)
+                page.wait_for_timeout(3000)
+                html = page.content()
+                browser.close()
+            soup = BeautifulSoup(html, "html.parser")
+            for s in soup(["script", "style", "noscript", "svg"]):
+                s.extract()
+            js_rendered = True
+        except Exception:
+            pass
+    return r, soup, js_rendered
+
 @app.get("/analyze")
 def analyze(url: str):
     try:
-        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"}
-        
-        start_time = time.time()
-        r = requests.get(url, headers=headers, timeout=15, allow_redirects=True)
-        load_time = round(time.time() - start_time, 2)
-        
+        r, soup, js_rendered = get_base_soup(url)
+        headers = {"User-Agent": "Mozilla/5.0"}
         status_code = r.status_code
         final_url = r.url 
         
@@ -590,27 +649,6 @@ def analyze(url: str):
         has_robots = check_file("robots.txt")
         has_sitemap = check_file("sitemap.xml")
         has_llms = check_file("llms.txt")
-        
-        soup = BeautifulSoup(r.text, "html.parser")
-        js_rendered = False
-
-        text_check = soup.get_text(separator=" ")
-        words_check = [w for w in text_check.split() if len(w) > 2]
-        
-        if len(words_check) < 200:
-            try:
-                from playwright.sync_api import sync_playwright
-                with sync_playwright() as p:
-                    browser = p.chromium.launch(headless=True)
-                    page = browser.new_page()
-                    page.goto(url, timeout=60000)
-                    page.wait_for_timeout(3000)
-                    html = page.content()
-                    browser.close()
-                soup = BeautifulSoup(html, "html.parser")
-                js_rendered = True
-            except Exception as inner_e:
-                print(f"Playwright fallback failed: {inner_e}")
 
         has_favicon = False
         for link in soup.find_all("link"):
@@ -675,7 +713,7 @@ def analyze(url: str):
                 return {"score": "Timeout", "lcp": "Timeout", "cls": "Timeout", "inp": "Timeout", "responsive_pass": False}
 
         # REMEMBER TO PASTE YOUR REAL API KEY HERE!
-        apiKey = "AIzaSyAJSIWD5LTnZK_yC4mKeyxw76COHxdESPU"
+        apiKey = "AIzaSyA_YOUR_SECRET_KEY_HERE"
         
         with concurrent.futures.ThreadPoolExecutor() as executor:
             mobile_future = executor.submit(get_psi_data, url, "mobile", apiKey)
@@ -704,9 +742,6 @@ def analyze(url: str):
 
         h1_list = [h.get_text(strip=True) for h in soup.find_all("h1")]
         h2_list = [h.get_text(strip=True) for h in soup.find_all("h2")]
-
-        for s in soup(["script", "style", "noscript"]):
-            s.extract()
 
         raw_text_blocks = soup.get_text(separator="\n")
         
@@ -854,6 +889,9 @@ def analyze(url: str):
         on_page_score = max(0, on_page_score)
         technical_score = max(0, technical_score)
 
+        # Calculate a rough load time based on start_time if not using playwright
+        load_time = round(time.time() - start_time, 2)
+
         return {
             "js_rendered": js_rendered,
             "performance": {
@@ -893,5 +931,109 @@ def analyze(url: str):
             "issues": {"on_page": on_page_issues, "technical": technical_issues}
         }
 
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/analyze-content")
+def analyze_content(url: str):
+    try:
+        r, soup, js_rendered = get_base_soup(url)
+        
+        text_clean = soup.get_text(separator=" ")
+        raw_words = re.findall(r'\b[a-zA-Z]{2,}\b', text_clean.lower())
+        total_words = len(raw_words)
+        
+        if total_words == 0:
+            return {"error": "No readable content found on the page."}
+
+        headings = {
+            "h1": [h.get_text(strip=True) for h in soup.find_all("h1")],
+            "h2": [h.get_text(strip=True) for h in soup.find_all("h2")],
+            "h3": [h.get_text(strip=True) for h in soup.find_all("h3")],
+            "h4": [h.get_text(strip=True) for h in soup.find_all("h4")],
+            "h5": [h.get_text(strip=True) for h in soup.find_all("h5")],
+            "h6": [h.get_text(strip=True) for h in soup.find_all("h6")]
+        }
+
+        sentences = max(1, len(re.split(r'[.!?]+', text_clean)))
+        def count_syllables(word):
+            word = word.lower()
+            count = 0
+            vowels = "aeiouy"
+            if word[0] in vowels: count += 1
+            for index in range(1, len(word)):
+                if word[index] in vowels and word[index - 1] not in vowels: count += 1
+            if word.endswith("e"): count -= 1
+            if count == 0: count += 1
+            return count
+        
+        total_syllables = sum(count_syllables(w) for w in raw_words)
+        flesch_score = round(206.835 - 1.015 * (total_words / sentences) - 84.6 * (total_syllables / max(total_words, 1)), 1)
+        
+        read_level = "Easy (6th Grade)"
+        if flesch_score < 30: read_level = "Very Hard (College Grad)"
+        elif flesch_score < 50: read_level = "Hard (College)"
+        elif flesch_score < 60: read_level = "Fairly Hard (10th-12th Grade)"
+        elif flesch_score < 70: read_level = "Standard (8th-9th Grade)"
+
+        info_kws = {"how", "what", "guide", "learn", "tutorial", "tips", "best"}
+        trans_kws = {"buy", "price", "order", "store", "cart", "checkout", "services"}
+        
+        info_count = sum(1 for w in raw_words if w in info_kws)
+        trans_count = sum(1 for w in raw_words if w in trans_kws)
+        
+        primary_intent = "Informational"
+        tips = ["Use clear H2 questions (e.g., 'What is...')", "Include bulleted lists for quick answers", "Add a table of contents"]
+        
+        if trans_count > info_count:
+            primary_intent = "Transactional"
+            tips = ["Ensure strong Call-to-Action (CTA) buttons", "Include clear pricing or service breakdowns", "Highlight trust badges & reviews"]
+
+        has_author = bool(soup.find(attrs={"rel": "author"}) or soup.find(class_=re.compile(r'author|byline', re.I)))
+        links = [a.get("href", "") for a in soup.find_all("a", href=True)]
+        has_contact_or_about = any("contact" in l.lower() or "about" in l.lower() for l in links)
+        has_external = any(l.startswith("http") and urlparse(url).netloc not in l for l in links)
+
+        stopwords = {"a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for", "with", "about", "by", "from", "of", "is", "are", "was", "were", "this", "that", "it", "not", "be", "your", "our", "you"}
+        meaningful = [w for w in raw_words if w not in stopwords]
+        
+        # Calculate phrases natively for the content tab
+        def get_phrases(words, n, top_k):
+            if len(words) < n: return []
+            phrases = []
+            for i in range(len(words) - n + 1):
+                ngram = words[i:i+n]
+                if ngram[0] not in stopwords and ngram[-1] not in stopwords:
+                    phrases.append(" ".join(ngram))
+            counts = Counter(phrases)
+            return [{"phrase": p, "count": c, "density": round((c * n / total_words) * 100, 2)} for p, c in counts.most_common(top_k) if c > 1]
+
+        top_1 = [{"phrase": w, "count": c, "density": round((c / total_words) * 100, 2)} for w, c in Counter(meaningful).most_common(12) if c > 1]
+        top_2 = get_phrases(meaningful, 2, 8)
+        top_3 = get_phrases(meaningful, 3, 8)
+
+        c_score = 100
+        if total_words < 300: c_score -= 20
+        elif total_words < 600: c_score -= 10
+        if not has_author: c_score -= 5
+        if not has_contact_or_about: c_score -= 5
+        if len(headings["h1"]) != 1: c_score -= 10
+        if flesch_score < 30: c_score -= 10 
+        c_score = max(0, c_score)
+
+        tri_grams = [" ".join(raw_words[i:i+3]) for i in range(len(raw_words)-2)]
+        tri_counts = Counter(tri_grams)
+        repetition_score = round((sum(c for p, c in tri_counts.items() if c > 3) / max(len(tri_grams), 1)) * 100, 1)
+
+        return {
+            "content_score": c_score,
+            "word_count": total_words,
+            "readability": {"score": flesch_score, "level": read_level},
+            "headings": headings,
+            "intent": {"primary_intent": primary_intent, "tips": tips},
+            "eeat": {"has_author": has_author, "has_contact_or_about": has_contact_or_about, "has_external_links": has_external},
+            "keywords": {"top_1": top_1, "top_2": top_2, "top_3": top_3},
+            "ai_plagiarism": {"heuristic_repetition_score": repetition_score}
+        }
     except Exception as e:
         return {"error": str(e)}
