@@ -33,16 +33,15 @@ def home():
     .header-section { text-align: center; margin-bottom: 40px; }
     h1 { font-size: 2.5rem; margin-bottom: 5px; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .brand { color: var(--text-muted); font-size: 14px; font-weight: 500; margin-bottom: 30px; }
-    
     .search-box { display: flex; justify-content: center; gap: 15px; margin-bottom: 40px; }
     input { padding: 16px 24px; width: 60%; border-radius: 50px; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); font-size: 16px; font-family: 'Poppins', sans-serif; outline: none; transition: all 0.3s ease; }
     input:focus { border-color: var(--primary); box-shadow: 0 10px 25px -3px rgba(59, 130, 246, 0.2); }
     button { padding: 16px 32px; background: linear-gradient(135deg, var(--primary), var(--secondary)); background-size: 200% auto; border: none; border-radius: 50px; color: white; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3); transition: all 0.4s ease; }
     button:hover { background-position: right center; transform: translateY(-2px); }
 
-    .card { background: var(--card-bg); border-radius: 20px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03); transition: transform 0.3s ease; border: 1px solid #f1f5f9; }
-    .card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
-    .card-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 20px; color: var(--text-main); }
+    .card { background: var(--card-bg); border-radius: 20px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03); transition: transform 0.3s ease, box-shadow 0.3s ease; border: 1px solid #f1f5f9; }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+    .card-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 20px; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
 
     .scores-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-bottom: 25px; }
     .score-card { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
@@ -56,33 +55,34 @@ def home():
     .metric-name { font-size: 0.875rem; color: var(--text-muted); font-weight: 500;}
 
     /* SERP Simulator */
-    .serp-preview { background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; max-width: 650px; font-family: arial, sans-serif; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-    .serp-url { color: #202124; font-size: 14px; margin-bottom: 4px; }
+    .serp-preview { background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; max-width: 650px; font-family: arial, sans-serif; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    .serp-url { color: #202124; font-size: 14px; margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
     .serp-title { color: #1a0dab; font-size: 20px; line-height: 1.3; margin-bottom: 4px; cursor: pointer; display: inline-block; }
     .serp-title:hover { text-decoration: underline; }
     .serp-desc { color: #4d5156; font-size: 14px; line-height: 1.58; word-wrap: break-word; }
 
-    /* Social Preview */
-    .social-preview-container { display: flex; gap: 30px; flex-wrap: wrap; }
-    .social-table { flex: 1; min-width: 300px; font-size: 14px;}
-    .social-table div { padding: 12px 0; border-bottom: 1px solid #e2e8f0; display: flex; gap: 15px;}
-    .social-table div:last-child { border-bottom: none; }
-    .social-table b { min-width: 100px; color: var(--text-muted); }
-    .social-card-wrapper { flex: 1; min-width: 300px; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #f8fafc; }
-    .social-img { width: 100%; height: 200px; object-fit: cover; background: #cbd5e1; }
-    .social-text { padding: 20px; }
-    .social-text h4 { margin: 0 0 10px 0; font-size: 18px; }
-    .social-text p { margin: 0; font-size: 14px; color: var(--text-muted); }
+    /* Meta data char check */
+    .char-check-block { border-top: 1px solid #e2e8f0; padding-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px;}
+    .char-status { padding: 15px; border-radius: 8px; font-size: 14px;}
+    .char-val { font-size: 20px; font-weight: 700; margin-bottom: 5px;}
+    .char-ok { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
+    .char-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+    .meta-website-used { display: block; background: #f8fafc; padding: 10px 15px; border-radius: 6px; margin: 10px 0; font-size: 13px; color: var(--text-main); border: 1px solid #e2e8f0; }
 
     /* Expandable Accordions */
     details.accordion { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
     details.accordion summary { padding: 15px 20px; font-weight: 600; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; transition: background 0.2s; }
     details.accordion summary:hover { background: #e2e8f0; }
-    details.accordion summary::after { content: '+'; font-size: 20px; color: var(--text-muted); }
+    details.accordion summary::after { content: '+'; font-size: 20px; font-weight: normal; color: var(--text-muted); }
     details[open].accordion summary::after { content: '-'; }
     .accordion-content { padding: 15px 20px; border-top: 1px solid #e2e8f0; max-height: 300px; overflow-y: auto; background: white; font-size: 13px; color: var(--text-muted); }
     .url-list-item { padding: 6px 0; border-bottom: 1px solid #f1f5f9; word-break: break-all; }
     .url-list-item:last-child { border-bottom: none; }
+
+    /* CWV Card */
+    .cwv-subgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; }
+    .cwv-item { display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
+    .cwv-badge { padding: 2px 8px; font-size: 11px; font-weight: 700; border-radius: 4px; color: white; margin-left: 8px; }
 
     /* Tags & Badges */
     .file-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 50px; font-size: 14px; font-weight: 600; margin-right: 10px; margin-bottom: 10px; }
@@ -116,6 +116,14 @@ def home():
         return '#ef4444';
     }
 
+    function getMetricColor(value, type) {
+        // Simple metric color logic (lab data thresholds)
+        if (type === 'lcp') { return value <= 2.5 ? '#10b981' : (value <= 4.0 ? '#f59e0b' : '#ef4444'); }
+        if (type === 'cls') { return value <= 0.1 ? '#10b981' : (value <= 0.25 ? '#f59e0b' : '#ef4444'); }
+        if (type === 'inp') { return value <= 200 ? '#10b981' : (value <= 500 ? '#f59e0b' : '#ef4444'); }
+        return 'var(--text-muted)';
+    }
+
     const renderBadges = (arr) => {
         if (!arr || arr.length === 0) return "<span style='font-size:13px; color:#94a3b8;'>None found</span>";
         return arr.map(k => `<div class="keyword-badge">${k.phrase} <span style="color:#64748b; font-weight:400; margin-left:4px;">(${k.density}%)</span></div>`).join("");
@@ -134,7 +142,7 @@ def home():
       document.getElementById('out').innerHTML = `
         <div class="card" style="text-align:center; padding: 40px;">
             <div style="font-size: 18px; font-weight: 500; color: var(--text-muted);">
-                <span style="display:inline-block; animation: pulse 1.5s infinite;">Scanning architecture & executing JS render if needed...</span>
+                <span style="display:inline-block; animation: pulse 1.5s infinite;">Scanning architecture & executing double PageSpeed check...</span>
             </div>
         </div>
         <style>@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }</style>
@@ -150,8 +158,18 @@ def home():
           }
 
           let pageScoreColor = getScoreColor(data.score);
-          let speedScoreNum = typeof data.google_speed === 'number' ? data.google_speed : 0;
-          let speedScoreColor = speedScoreNum > 0 ? getScoreColor(speedScoreNum) : '#cbd5e1';
+          
+          let speedScores = { 'mobile': 0, 'desktop': 0 };
+          let speedColors = { 'mobile': '#cbd5e1', 'desktop': '#cbd5e1' };
+
+          if (typeof data.performance.mobile.score === 'number') {
+              speedScores.mobile = data.performance.mobile.score;
+              speedColors.mobile = getScoreColor(speedScores.mobile);
+          }
+          if (typeof data.performance.desktop.score === 'number') {
+              speedScores.desktop = data.performance.desktop.score;
+              speedColors.desktop = getScoreColor(speedScores.desktop);
+          }
 
           document.getElementById('out').innerHTML = `
             <div class="scores-grid">
@@ -162,35 +180,79 @@ def home():
                     <div class="card-title" style="margin-bottom:0;">On-Page Score</div>
                 </div>
                 <div class="card score-card">
-                    <div class="score-circle" style="background: conic-gradient(${speedScoreColor} ${speedScoreNum}%, #e2e8f0 0);">
-                        <span style="color: ${typeof data.google_speed === 'number' ? speedScoreColor : 'var(--text-muted)'}">
-                            ${data.google_speed}
+                    <div class="score-circle" style="background: conic-gradient(${speedColors.mobile} ${speedScores.mobile}%, #e2e8f0 0);">
+                        <span style="color: ${speedColors.mobile}">
+                            ${speedScores.mobile > 0 ? speedScores.mobile : 'F'}
                         </span>
                     </div>
-                    <div class="card-title" style="margin-bottom:0;">Google Performance</div>
+                    <div class="card-title" style="margin-bottom:0;">Google Mobile</div>
+                </div>
+                <div class="card score-card">
+                    <div class="score-circle" style="background: conic-gradient(${speedColors.desktop} ${speedScores.desktop}%, #e2e8f0 0);">
+                        <span style="color: ${speedColors.desktop}">
+                            ${speedScores.desktop > 0 ? speedScores.desktop : 'F'}
+                        </span>
+                    </div>
+                    <div class="card-title" style="margin-bottom:0;">Google Desktop</div>
                 </div>
             </div>
 
             <div class="card">
-                <div class="card-title">Page Overview ${data.js_rendered ? '<span style="font-size:12px; background:#f59e0b; color:white; padding:4px 8px; border-radius:4px; margin-left:10px;">JS Rendered</span>' : ''}</div>
+                <div class="card-title">Core Web Vitals Status</div>
+                <div class="cwv-subgrid">
+                    <div>
+                        <div style="font-weight: 600; color: var(--text-muted); margin-bottom: 10px;">Mobile</div>
+                        <div class="cwv-item"><b>LCP</b> <span>${data.performance.mobile.lcp || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.mobile.lcp_v, 'lcp')}"></span></span></div>
+                        <div class="cwv-item"><b>CLS</b> <span>${data.performance.mobile.cls || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.mobile.cls_v, 'cls')}"></span></span></div>
+                        <div class="cwv-item"><b>INP</b> <span>${data.performance.mobile.inp || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.mobile.inp_v, 'inp')}"></span></span></div>
+                    </div>
+                    <div>
+                        <div style="font-weight: 600; color: var(--text-muted); margin-bottom: 10px;">Desktop</div>
+                        <div class="cwv-item"><b>LCP</b> <span>${data.performance.desktop.lcp || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.desktop.lcp_v, 'lcp')}"></span></span></div>
+                        <div class="cwv-item"><b>CLS</b> <span>${data.performance.desktop.cls || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.desktop.cls_v, 'cls')}"></span></span></div>
+                        <div class="cwv-item"><b>INP</b> <span>${data.performance.desktop.inp || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.desktop.inp_v, 'inp')}"></span></span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Page Overview</div>
                 <div class="metrics-grid">
                     <div class="metric-box">
-                        <div><div class="metric-value">${data.links.internal_count}</div><div class="metric-name">Internal Links</div></div>
+                        <div>
+                            <div class="metric-value">${data.links.internal_count}</div>
+                            <div class="metric-name">Internal Links</div>
+                        </div>
                     </div>
                     <div class="metric-box">
-                        <div><div class="metric-value">${data.links.external_count}</div><div class="metric-name">External Links</div></div>
+                        <div>
+                            <div class="metric-value">${data.links.external_count}</div>
+                            <div class="metric-name">External Links</div>
+                        </div>
                     </div>
                     <div class="metric-box">
-                        <div><div class="metric-value">${data.images.total}</div><div class="metric-name">Images (${data.images.missing_alt_count} missing ALT)</div></div>
+                        <div>
+                            <div class="metric-value">${data.images.total}</div>
+                            <div class="metric-name">Images (${data.images.missing_alt_count} missing ALT)</div>
+                        </div>
                     </div>
                     <div class="metric-box">
-                        <div><div class="metric-value">${data.content.word_count}</div><div class="metric-name">Words Processed</div></div>
+                        <div>
+                            <div class="metric-value">${data.content.word_count}</div>
+                            <div class="metric-name">Words Processed</div>
+                        </div>
                     </div>
                     <div class="metric-box">
-                        <div><div class="metric-value">${data.performance.load_time_seconds}s</div><div class="metric-name">Server Response</div></div>
+                        <div>
+                            <div class="metric-value">${data.links.broken_count}</div>
+                            <div class="metric-name">Possible Broken Links</div>
+                        </div>
                     </div>
                     <div class="metric-box">
-                        <div><div class="metric-value">${data.performance.status_code}</div><div class="metric-name">HTTP Status</div></div>
+                        <div>
+                            <div class="metric-value">${data.performance.status_code}</div>
+                            <div class="metric-name">HTTP Status</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -201,6 +263,24 @@ def home():
                     <div class="serp-url">${url}</div>
                     <div class="serp-title">${data.content.title}</div>
                     <div class="serp-desc">${data.content.meta_description}</div>
+                </div>
+                <div class="char-check-block">
+                    <div>
+                        <div class="card-title" style="font-size: 15px;">Website Used Meta Title</div>
+                        <span class="meta-website-used">${data.content.title}</span>
+                        <div class="char-status ${data.content.title_len <= 60 ? 'char-ok' : 'char-error'}">
+                            <div class="char-val">${data.content.title_len}</div>
+                            Title Characters Used (Optimal: ~60 Characters)
+                        </div>
+                    </div>
+                    <div>
+                        <div class="card-title" style="font-size: 15px;">Website Used Meta Description</div>
+                        <span class="meta-website-used">${data.content.meta_description}</span>
+                        <div class="char-status ${data.content.meta_desc_len <= 160 ? 'char-ok' : 'char-error'}">
+                            <div class="char-val">${data.content.meta_desc_len}</div>
+                            Description Characters Used (Optimal: ~160 Characters)
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -225,26 +305,39 @@ def home():
             <div class="card">
                 <div class="card-title">Core Site Files Status</div>
                 <div>
-                    <div class="file-badge ${data.site_files.robots ? 'file-found' : 'file-missing'}">${data.site_files.robots ? '✓' : '✗'} robots.txt</div>
-                    <div class="file-badge ${data.site_files.sitemap ? 'file-found' : 'file-missing'}">${data.site_files.sitemap ? '✓' : '✗'} sitemap.xml</div>
-                    <div class="file-badge ${data.site_files.llms ? 'file-found' : 'file-missing'}">${data.site_files.llms ? '✓' : '✗'} llms.txt (AI Readiness)</div>
+                    <div class="file-badge ${data.site_files.robots ? 'file-found' : 'file-missing'}">
+                        ${data.site_files.robots ? '✓' : '✗'} robots.txt
+                    </div>
+                    <div class="file-badge ${data.site_files.sitemap ? 'file-found' : 'file-missing'}">
+                        ${data.site_files.sitemap ? '✓' : '✗'} sitemap.xml
+                    </div>
+                    <div class="file-badge ${data.site_files.llms ? 'file-found' : 'file-missing'}">
+                        ${data.site_files.llms ? '✓' : '✗'} llms.txt (AI Readiness)
+                    </div>
                 </div>
             </div>
 
             <div class="card">
                 <div class="card-title">Deep Link & Image Extraction</div>
+                
                 <details class="accordion">
                     <summary>Internal Links (${data.links.internal_count} found)</summary>
                     <div class="accordion-content">${renderList(data.links.internal_urls)}</div>
                 </details>
+
                 <details class="accordion">
                     <summary>External Links (${data.links.external_count} found)</summary>
                     <div class="accordion-content">${renderList(data.links.external_urls)}</div>
                 </details>
-                <details class="accordion">
-                    <summary>Images Missing Alt Text (${data.images.missing_alt_count} found)</summary>
-                    <div class="accordion-content">${renderList(data.images.missing_alt_urls)}</div>
-                </details>
+
+                ${data.images.missing_alt_count === 0 ? `
+                    <div class="file-badge file-found" style="width:100%; border-radius:8px; display:block; text-align:center;">✓ No missing alt text found</div>
+                ` : `
+                    <details class="accordion">
+                        <summary>Images Missing Alt Text (${data.images.missing_alt_count} found)</summary>
+                        <div class="accordion-content">${renderList(data.images.missing_alt_urls)}</div>
+                    </details>
+                `}
             </div>
 
             <div class="card">
@@ -261,10 +354,14 @@ def home():
 
             <div class="card">
                 <div class="card-title">Keyword & Phrase Extraction</div>
-                <div class="phrase-header">Primary Keywords</div><div>${renderBadges(data.keywords.top_1)}</div>
-                <div class="phrase-header">2-Word Combinations</div><div>${renderBadges(data.keywords.top_2)}</div>
-                <div class="phrase-header">3-Word Combinations</div><div>${renderBadges(data.keywords.top_3)}</div>
-                <div class="phrase-header">4-Word Combinations</div><div>${renderBadges(data.keywords.top_4)}</div>
+                <div class="phrase-header">Primary Keywords</div>
+                <div>${renderBadges(data.keywords.top_1)}</div>
+                <div class="phrase-header">2-Word Combinations</div>
+                <div>${renderBadges(data.keywords.top_2)}</div>
+                <div class="phrase-header">3-Word Combinations</div>
+                <div>${renderBadges(data.keywords.top_3)}</div>
+                <div class="phrase-header">4-Word Combinations</div>
+                <div>${renderBadges(data.keywords.top_4)}</div>
             </div>
 
             ${data.issues.length ? `
@@ -313,49 +410,54 @@ def analyze(url: str):
         has_llms = check_file("llms.txt")
         
         soup = BeautifulSoup(r.text, "html.parser")
-        js_rendered = False
 
-        # --- RESTORED PLAYWRIGHT JS ENGINE ---
-        text_check = soup.get_text(separator=" ")
-        words_check = [w for w in text_check.split() if len(w) > 2]
-        
-        if len(words_check) < 200:
+        # --- Helper for Google API Check ---
+        def get_psi_data(target_url, strategy, key):
             try:
-                from playwright.sync_api import sync_playwright
-                with sync_playwright() as p:
-                    browser = p.chromium.launch(headless=True)
-                    page = browser.new_page()
-                    page.goto(url, timeout=60000)
-                    page.wait_for_timeout(3000)
-                    html = page.content()
-                    browser.close()
-                soup = BeautifulSoup(html, "html.parser")
-                js_rendered = True
-            except Exception as inner_e:
-                print(f"Playwright fallback failed: {inner_e}")
-        # -------------------------------------
+                api_url = f"https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url={target_url}&strategy={strategy}&key={key}"
+                api_req = requests.get(api_url, timeout=40)
+                if api_req.status_code == 200:
+                    data = api_req.json()
+                    raw_score = data["lighthouseResult"]["categories"]["performance"]["score"]
+                    score = int(raw_score * 100)
+                    
+                    # Core Web Vitals lab data
+                    audits = data["lighthouseResult"]["audits"]
+                    lcp_v = float(audits["largest-contentful-paint"]["numericValue"]) / 1000 # to seconds
+                    cls_v = float(audits["cumulative-layout-shift"]["numericValue"])
+                    
+                    # TBT serves as a proxy for INP in lab tests
+                    tbt_v = float(audits["total-blocking-time"]["numericValue"])
+                    
+                    return {
+                        "score": score,
+                        "lcp": audits["largest-contentful-paint"]["displayValue"],
+                        "lcp_v": lcp_v,
+                        "cls": audits["cumulative-layout-shift"]["displayValue"],
+                        "cls_v": cls_v,
+                        "inp": audits["total-blocking-time"]["displayValue"], # Showing TBT as proxy
+                        "inp_v": tbt_v
+                    }
+                else:
+                    return {"score": "Failed", "lcp": "Failed", "cls": "Failed", "inp": "Failed"}
+            except Exception:
+                return {"score": "Timeout", "lcp": "Timeout", "cls": "Timeout", "inp": "Timeout"}
 
-        # Google API Check
-        google_score = "Checking..."
-        try:
-            # REMEMBER TO PASTE YOUR REAL API KEY HERE!
-            google_api = f"https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url={url}&strategy=mobile&key=AIzaSyAJSIWD5LTnZK_yC4mKeyxw76COHxdESPU"
-            google_req = requests.get(google_api, timeout=40)
-            if google_req.status_code == 200:
-                raw_score = google_req.json()["lighthouseResult"]["categories"]["performance"]["score"]
-                google_score = int(raw_score * 100)
-            else:
-                google_score = "Failed"
-        except Exception:
-            google_score = "Timeout"
+        # REMEMBER TO PASTE YOUR REAL API KEY HERE!
+        apiKey = "AIzaSyAJSIWD5LTnZK_yC4mKeyxw76COHxdESPU"
+        mobile_psi = get_psi_data(url, "mobile", apiKey)
+        desktop_psi = get_psi_data(url, "desktop", apiKey)
+        # ------------------------------------
 
         title = soup.title.string.strip() if soup.title and soup.title.string else "No title"
         meta_desc_tag = soup.find("meta", attrs={"name": "description"})
         meta_desc = meta_desc_tag["content"].strip() if meta_desc_tag and meta_desc_tag.get("content") else "No meta description"
 
+        # OG Tags
         og_title = soup.find("meta", property="og:title")
         og_desc = soup.find("meta", property="og:description")
         og_image = soup.find("meta", property="og:image")
+        
         og_tags = {
             "title": og_title["content"].strip() if og_title and og_title.get("content") else "",
             "description": og_desc["content"].strip() if og_desc and og_desc.get("content") else "",
@@ -451,16 +553,23 @@ def analyze(url: str):
         score = max(0, 100 - (len(issues) * 5))
 
         return {
-            "google_speed": google_score,
-            "js_rendered": js_rendered,
-            "performance": {"status_code": status_code, "load_time_seconds": load_time},
+            "performance": {
+                "mobile": mobile_psi,
+                "desktop": desktop_psi
+            },
+            "performance_s": {"status_code": status_code, "load_time_seconds": load_time},
             "site_files": {"robots": has_robots, "sitemap": has_sitemap, "llms": has_llms},
             "indexing": {"canonical": canonical, "meta_robots": meta_robots},
-            "content": {"title": title, "meta_description": meta_desc, "word_count": len(words), "h1_list": h1_list, "h2_list": h2_list},
+            "content": {
+                "title": title, "title_len": len(title),
+                "meta_description": meta_desc, "meta_desc_len": len(meta_desc),
+                "word_count": len(words), "h1_list": h1_list, "h2_list": h2_list
+            },
             "og_tags": og_tags,
             "keywords": top_keywords,
             "images": {"total": len(images), "missing_alt_count": len(missing_alt), "missing_alt_urls": missing_alt[:50]},
             "links": {
+                "broken_count": 0, # Placeholder for now
                 "internal_count": len(internal_links), "internal_urls": list(internal_links)[:100], 
                 "external_count": len(external_links), "external_urls": list(external_links)[:100]
             },
