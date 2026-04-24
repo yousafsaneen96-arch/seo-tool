@@ -45,11 +45,13 @@ def home():
     .card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
     .card-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 20px; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
 
-    .scores-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-bottom: 25px; }
+    .scores-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; margin-bottom: 25px; }
     .score-card { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-    .score-circle { width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; margin-bottom: 15px; position: relative; }
+    .score-circle { width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; margin-bottom: 15px; position: relative; }
     .score-circle::before { content: ""; position: absolute; inset: 10px; background: white; border-radius: 50%; z-index: 1; }
     .score-circle span { position: relative; z-index: 2; }
+    .score-label { font-size: 14px; font-weight: 600; color: var(--text-main); }
+    .score-sublabel { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
 
     .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
     .metric-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; display: flex; align-items: center; gap: 15px; }
@@ -109,8 +111,12 @@ def home():
     .audit-details h4 { margin: 0 0 4px 0; font-size: 15px; color: var(--text-main); }
     .audit-details p { margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.4; }
     
-    .issues-list { background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid var(--danger); }
-    .issues-list li { color: #991b1b; margin-bottom: 8px; font-size: 15px;}
+    .issues-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .issue-panel { background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid var(--danger); padding: 20px; border-radius: 8px; }
+    .issue-panel h3 { margin: 0 0 15px 0; color: #991b1b; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+    .issue-panel ul { margin: 0; padding-left: 20px; }
+    .issue-panel li { color: #991b1b; margin-bottom: 8px; font-size: 14px; }
+
     </style>
 
     <div class="container">
@@ -168,11 +174,12 @@ def home():
           let data = await res.json();
 
           if (data.error) {
-            document.getElementById('out').innerHTML = `<div class="card issues-list" style="text-align:center;">Error: ${data.error}</div>`;
+            document.getElementById('out').innerHTML = `<div class="card" style="text-align:center; color:red;">Error: ${data.error}</div>`;
             return;
           }
 
-          let pageScoreColor = getScoreColor(data.score);
+          let onPageColor = getScoreColor(data.scores.on_page);
+          let techColor = getScoreColor(data.scores.technical);
           
           let speedScores = { 'mobile': 0, 'desktop': 0 };
           let speedColors = { 'mobile': '#cbd5e1', 'desktop': '#cbd5e1' };
@@ -189,28 +196,51 @@ def home():
           document.getElementById('out').innerHTML = `
             <div class="scores-grid">
                 <div class="card score-card">
-                    <div class="score-circle" style="background: conic-gradient(${pageScoreColor} ${data.score}%, #e2e8f0 0);">
-                        <span style="color: ${pageScoreColor}">${data.score}</span>
+                    <div class="score-circle" style="background: conic-gradient(${onPageColor} ${data.scores.on_page}%, #e2e8f0 0);">
+                        <span style="color: ${onPageColor}">${data.scores.on_page}</span>
                     </div>
-                    <div class="card-title" style="margin-bottom:0;">On-Page Score</div>
+                    <div class="score-label">On-Page SEO</div>
+                    <div class="score-sublabel">Content & Architecture</div>
+                </div>
+                <div class="card score-card">
+                    <div class="score-circle" style="background: conic-gradient(${techColor} ${data.scores.technical}%, #e2e8f0 0);">
+                        <span style="color: ${techColor}">${data.scores.technical}</span>
+                    </div>
+                    <div class="score-label">Technical SEO</div>
+                    <div class="score-sublabel">Security & Indexing</div>
                 </div>
                 <div class="card score-card">
                     <div class="score-circle" style="background: conic-gradient(${speedColors.mobile} ${speedScores.mobile}%, #e2e8f0 0);">
-                        <span style="color: ${speedColors.mobile}">
-                            ${speedScores.mobile > 0 ? speedScores.mobile : 'F'}
-                        </span>
+                        <span style="color: ${speedColors.mobile}">${speedScores.mobile > 0 ? speedScores.mobile : 'F'}</span>
                     </div>
-                    <div class="card-title" style="margin-bottom:0;">Google Mobile</div>
+                    <div class="score-label">Mobile Speed</div>
+                    <div class="score-sublabel">Lighthouse Score</div>
                 </div>
                 <div class="card score-card">
                     <div class="score-circle" style="background: conic-gradient(${speedColors.desktop} ${speedScores.desktop}%, #e2e8f0 0);">
-                        <span style="color: ${speedColors.desktop}">
-                            ${speedScores.desktop > 0 ? speedScores.desktop : 'F'}
-                        </span>
+                        <span style="color: ${speedColors.desktop}">${speedScores.desktop > 0 ? speedScores.desktop : 'F'}</span>
                     </div>
-                    <div class="card-title" style="margin-bottom:0;">Google Desktop</div>
+                    <div class="score-label">Desktop Speed</div>
+                    <div class="score-sublabel">Lighthouse Score</div>
                 </div>
             </div>
+
+            ${(data.issues.on_page.length > 0 || data.issues.technical.length > 0) ? `
+            <div class="issues-list" style="margin-bottom: 25px;">
+                ${data.issues.on_page.length > 0 ? `
+                <div class="issue-panel">
+                    <h3>⚠️ On-Page Action Items</h3>
+                    <ul>${data.issues.on_page.map(i => `<li>${i}</li>`).join("")}</ul>
+                </div>
+                ` : ''}
+                ${data.issues.technical.length > 0 ? `
+                <div class="issue-panel">
+                    <h3>⚙️ Technical Action Items</h3>
+                    <ul>${data.issues.technical.map(i => `<li>${i}</li>`).join("")}</ul>
+                </div>
+                ` : ''}
+            </div>
+            ` : '<div class="card" style="background:#ecfdf5; border-color:#a7f3d0; color:#065f46; text-align:center; font-weight:600;">🎉 Perfect! No severe SEO issues detected.</div>'}
 
             <div class="card">
                 <div class="card-title">Core Web Vitals Status</div>
@@ -275,10 +305,10 @@ def home():
                     </div>
 
                     <div class="audit-item">
-                        <div class="audit-icon ${data.technical.html_size_kb <= 33 ? 'audit-pass' : 'audit-fail'}">${data.technical.html_size_kb <= 33 ? '✅' : '❌'}</div>
+                        <div class="audit-icon ${data.technical.html_size_kb <= 100 ? 'audit-pass' : 'audit-fail'}">${data.technical.html_size_kb <= 100 ? '✅' : '❌'}</div>
                         <div class="audit-details">
                             <h4>HTML Page Size Test</h4>
-                            <p>The size of this HTML document is <b>${data.technical.html_size_kb} Kb</b>. ${data.technical.html_size_kb > 33 ? 'This is greater than the 33Kb average.' : 'This is optimal for loading speeds.'}</p>
+                            <p>The size of this HTML document is <b>${data.technical.html_size_kb} Kb</b>.</p>
                         </div>
                     </div>
 
@@ -368,17 +398,17 @@ def home():
                     <div>
                         <div class="card-title" style="font-size: 15px; margin-bottom: 5px;">Website Used Meta Title</div>
                         <span class="meta-website-used">${data.content.title}</span>
-                        <div class="char-status ${data.content.title_len <= 60 ? 'char-ok' : 'char-error'}">
+                        <div class="char-status ${data.content.title_len > 10 && data.content.title_len <= 60 ? 'char-ok' : 'char-error'}">
                             <div class="char-val">${data.content.title_len}</div>
-                            Title Characters Used (Optimal: ~60 Characters)
+                            Title Characters Used (Optimal: 50-60 Characters)
                         </div>
                     </div>
                     <div>
                         <div class="card-title" style="font-size: 15px; margin-bottom: 5px;">Website Used Meta Description</div>
                         <span class="meta-website-used">${data.content.meta_description}</span>
-                        <div class="char-status ${data.content.meta_desc_len <= 160 ? 'char-ok' : 'char-error'}">
+                        <div class="char-status ${data.content.meta_desc_len > 50 && data.content.meta_desc_len <= 160 ? 'char-ok' : 'char-error'}">
                             <div class="char-val">${data.content.meta_desc_len}</div>
-                            Description Characters Used (Optimal: ~160 Characters)
+                            Description Characters Used (Optimal: 150-160 Characters)
                         </div>
                     </div>
                 </div>
@@ -463,18 +493,9 @@ def home():
                 <div class="phrase-header">4-Word Combinations</div>
                 <div class="badge-container">${renderBadges(data.keywords.top_4)}</div>
             </div>
-
-            ${data.issues.length ? `
-            <div class="card issues-list">
-                <div class="card-title" style="color: #991b1b;">Action Items Found</div>
-                <ul style="margin:0; padding-left:20px;">
-                    ${data.issues.map(i => `<li>${i}</li>`).join("")}
-                </ul>
-            </div>
-            ` : ''}
           `;
       } catch (err) {
-          document.getElementById('out').innerHTML = `<div class="card issues-list" style="text-align:center;">Failed to fetch analysis. Check server logs.</div>`;
+          document.getElementById('out').innerHTML = `<div class="card" style="text-align:center; color:red;">Failed to fetch analysis. Check server logs.</div>`;
       }
     }
     </script>
@@ -492,7 +513,6 @@ def analyze(url: str):
         status_code = r.status_code
         final_url = r.url 
         
-        # --- Technical Data Extraction ---
         html_size_kb = round(len(r.content) / 1024, 2)
         is_https = final_url.startswith("https")
         has_hsts = "strict-transport-security" in (k.lower() for k in r.headers.keys())
@@ -500,7 +520,6 @@ def analyze(url: str):
         parsed_url = urlparse(final_url)
         base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
         
-        # 1. URL Canonicalization (WWW vs Non-WWW test)
         www_resolve = False
         domain = parsed_url.netloc
         alt_domain = domain[4:] if domain.startswith("www.") else "www." + domain
@@ -527,7 +546,6 @@ def analyze(url: str):
         soup = BeautifulSoup(r.text, "html.parser")
         js_rendered = False
 
-        # --- Playwright Fallback ---
         text_check = soup.get_text(separator=" ")
         words_check = [w for w in text_check.split() if len(w) > 2]
         
@@ -546,9 +564,6 @@ def analyze(url: str):
             except Exception as inner_e:
                 print(f"Playwright fallback failed: {inner_e}")
 
-        # --- Additional Technical Audits ---
-        
-        # 1. Smarter Favicon Check (handles list types)
         has_favicon = False
         for link in soup.find_all("link"):
             rel_attr = link.get("rel", [])
@@ -560,13 +575,11 @@ def analyze(url: str):
                 has_favicon = True
                 break
                 
-        # Secondary fallback: explicitly check for the file if tag is missing
         if not has_favicon:
             has_favicon = check_file("favicon.ico")
 
         scripts = soup.find_all("script")
         has_ga = any("google-analytics.com" in str(s) or "googletagmanager.com" in str(s) for s in scripts)
-        
         has_schema = bool(soup.find("script", type="application/ld+json") or soup.find(attrs={"itemtype": True}))
         has_hreflang = bool(soup.find("link", hreflang=True))
         
@@ -581,7 +594,6 @@ def analyze(url: str):
         meta_robots = robots_tag["content"] if robots_tag and robots_tag.get("content") else "Index, Follow"
         noindex_pass = "noindex" not in meta_robots.lower()
 
-        # --- Parallel Google PSI Checks ---
         def get_psi_data(target_url, strategy, key):
             try:
                 api_url = f"https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url={target_url}&strategy={strategy}&key={key}"
@@ -617,7 +629,6 @@ def analyze(url: str):
         # REMEMBER TO PASTE YOUR REAL API KEY HERE!
         apiKey = "AIzaSyAJSIWD5LTnZK_yC4mKeyxw76COHxdESPU"
         
-        # We run both requests concurrently to cut the loading time in half!
         with concurrent.futures.ThreadPoolExecutor() as executor:
             mobile_future = executor.submit(get_psi_data, url, "mobile", apiKey)
             desktop_future = executor.submit(get_psi_data, url, "desktop", apiKey)
@@ -627,8 +638,11 @@ def analyze(url: str):
         responsive_images_pass = mobile_psi.get("responsive_pass", False)
 
         title = soup.title.string.strip() if soup.title and soup.title.string else "No title"
+        title_len = len(title) if title != "No title" else 0
+        
         meta_desc_tag = soup.find("meta", attrs={"name": "description"})
         meta_desc = meta_desc_tag["content"].strip() if meta_desc_tag and meta_desc_tag.get("content") else "No meta description"
+        meta_desc_len = len(meta_desc) if meta_desc != "No meta description" else 0
 
         og_title = soup.find("meta", property="og:title")
         og_desc = soup.find("meta", property="og:description")
@@ -710,18 +724,90 @@ def analyze(url: str):
             if href.startswith("/") or url in href: internal_links.add(urljoin(url, href))
             elif href.startswith("http"): external_links.add(href)
 
-        issues = []
-        if status_code >= 400: issues.append(f"Page returned HTTP {status_code}")
-        if len(h1_list) == 0: issues.append("Missing H1 Tag")
-        if canonical == "Missing": issues.append("Missing Canonical Tag")
-        if "noindex" in meta_robots.lower(): issues.append("Page is blocked from indexing")
-        if len(missing_alt) > 0: issues.append(f"{len(missing_alt)} images missing alt text")
+        # --- NEW SCORING LOGIC ---
+        on_page_issues = []
+        on_page_score = 100
+        
+        if title == "No title":
+            on_page_issues.append("Missing Title Tag (-15)")
+            on_page_score -= 15
+        elif title_len < 30 or title_len > 60:
+            on_page_issues.append(f"Title length is {title_len} chars (Optimal is 50-60) (-5)")
+            on_page_score -= 5
+            
+        if meta_desc == "No meta description":
+            on_page_issues.append("Missing Meta Description (-15)")
+            on_page_score -= 15
+        elif meta_desc_len < 120 or meta_desc_len > 160:
+            on_page_issues.append(f"Meta Description length is {meta_desc_len} chars (Optimal is 150-160) (-5)")
+            on_page_score -= 5
 
+        if len(h1_list) == 0:
+            on_page_issues.append("Missing H1 Tag (-10)")
+            on_page_score -= 10
+        elif len(h1_list) > 1:
+            on_page_issues.append("Multiple H1 Tags detected (-5)")
+            on_page_score -= 5
+            
+        if len(h2_list) == 0:
+            on_page_issues.append("Missing H2 Tags (-5)")
+            on_page_score -= 5
+
+        if len(missing_alt) > 0:
+            penalty = min(len(missing_alt) * 2, 15)
+            on_page_issues.append(f"{len(missing_alt)} images missing alt text (-{penalty})")
+            on_page_score -= penalty
+
+        # Strict 4.0% keyword stuffing threshold
         for kw in top_keywords["top_1"]:
-            if kw["density"] > 5.0:  
-                issues.append(f"Possible keyword stuffing: '{kw['phrase']}' has a density of {kw['density']}%")
+            if kw["density"] > 4.0:  
+                on_page_issues.append(f"Keyword stuffing: '{kw['phrase']}' is heavily overused at {kw['density']}% (-10)")
+                on_page_score -= 10
 
-        score = max(0, 100 - (len(issues) * 5))
+        technical_issues = []
+        technical_score = 100
+        
+        if not is_https:
+            technical_issues.append("Website is not using HTTPS (-20)")
+            technical_score -= 20
+        if not has_hsts:
+            technical_issues.append("Missing HSTS Security Header (-5)")
+            technical_score -= 5
+        if not canonical_pass:
+            technical_issues.append("Missing Canonical Tag (-10)")
+            technical_score -= 10
+        if not www_resolve:
+            technical_issues.append("WWW and non-WWW versions do not resolve correctly (-10)")
+            technical_score -= 10
+        if not noindex_pass:
+            technical_issues.append("FATAL: Page is blocked by a noindex tag (-20)")
+            technical_score -= 20
+        if not has_robots:
+            technical_issues.append("Missing robots.txt (-5)")
+            technical_score -= 5
+        if not has_sitemap:
+            technical_issues.append("Missing sitemap.xml (-5)")
+            technical_score -= 5
+        if not has_schema:
+            technical_issues.append("Missing Schema.org Structured Data (-10)")
+            technical_score -= 10
+        if html_size_kb > 100:
+            technical_issues.append(f"HTML size is very large ({html_size_kb} Kb) (-5)")
+            technical_score -= 5
+
+        # CWV Penalties
+        if isinstance(mobile_psi.get("lcp_v"), float) and mobile_psi["lcp_v"] > 2.5:
+            technical_issues.append(f"Mobile LCP is too slow ({mobile_psi['lcp_v']}s) (-10)")
+            technical_score -= 10
+        if isinstance(mobile_psi.get("cls_v"), float) and mobile_psi["cls_v"] > 0.1:
+            technical_issues.append(f"Mobile CLS is too high ({mobile_psi['cls_v']}) (-10)")
+            technical_score -= 10
+        if isinstance(mobile_psi.get("inp_v"), float) and mobile_psi["inp_v"] > 200:
+            technical_issues.append(f"Mobile INP is too slow ({mobile_psi['inp_v']}ms) (-10)")
+            technical_score -= 10
+
+        on_page_score = max(0, on_page_score)
+        technical_score = max(0, technical_score)
 
         return {
             "js_rendered": js_rendered,
@@ -747,8 +833,8 @@ def analyze(url: str):
             "site_files": {"robots": has_robots, "sitemap": has_sitemap, "llms": has_llms},
             "indexing": {"canonical": canonical, "meta_robots": meta_robots},
             "content": {
-                "title": title, "title_len": len(title),
-                "meta_description": meta_desc, "meta_desc_len": len(meta_desc),
+                "title": title, "title_len": title_len,
+                "meta_description": meta_desc, "meta_desc_len": meta_desc_len,
                 "word_count": len(words), "h1_list": h1_list, "h2_list": h2_list
             },
             "og_tags": og_tags,
@@ -758,8 +844,8 @@ def analyze(url: str):
                 "internal_count": len(internal_links), "internal_urls": list(internal_links)[:100], 
                 "external_count": len(external_links), "external_urls": list(external_links)[:100]
             },
-            "score": score,
-            "issues": issues
+            "scores": {"on_page": on_page_score, "technical": technical_score},
+            "issues": {"on_page": on_page_issues, "technical": technical_issues}
         }
 
     except Exception as e:
