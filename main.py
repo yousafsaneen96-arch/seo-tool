@@ -62,7 +62,6 @@ def home():
     .serp-title:hover { text-decoration: underline; }
     .serp-desc { color: #4d5156; font-size: 14px; line-height: 1.58; word-wrap: break-word; }
 
-    /* Meta data char check (FIXED OVERFLOW) */
     .char-check-block { border-top: 1px solid #e2e8f0; padding-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
     .char-status { padding: 15px; border-radius: 8px; font-size: 14px;}
     .char-val { font-size: 20px; font-weight: 700; margin-bottom: 5px;}
@@ -85,7 +84,7 @@ def home():
     .cwv-item { display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
     .cwv-badge { padding: 2px 8px; font-size: 11px; font-weight: 700; border-radius: 4px; color: white; margin-left: 8px; }
 
-    /* Tags & Badges (FIXED OVERFLOW) */
+    /* Tags & Badges */
     .badge-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
     .file-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 50px; font-size: 14px; font-weight: 600; margin-right: 10px; margin-bottom: 10px; }
     .file-found { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
@@ -94,7 +93,7 @@ def home():
     .keyword-badge { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; padding: 6px 14px; border-radius: 50px; font-size: 13px; font-weight: 500; }
     .phrase-header { margin-top: 20px; font-size: 15px; font-weight: 600; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 12px; color: var(--text-main); }
     
-    /* Social Preview (FIXED IMAGE BLOWOUT) */
+    /* Social Preview */
     .social-preview-container { display: flex; gap: 30px; flex-wrap: wrap; align-items: flex-start; }
     .social-table { flex: 1 1 300px; font-size: 14px; word-break: break-word; }
     .social-table div { padding: 12px 0; border-bottom: 1px solid #e2e8f0; display: flex; gap: 15px;}
@@ -105,6 +104,15 @@ def home():
     .social-text { padding: 20px; }
     .social-text h4 { margin: 0 0 10px 0; font-size: 18px; }
     .social-text p { margin: 0; font-size: 14px; color: var(--text-muted); }
+    
+    /* New Audit Checkmarks */
+    .audit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+    .audit-item { display: flex; align-items: flex-start; gap: 12px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
+    .audit-icon { font-size: 18px; margin-top: 2px; }
+    .audit-pass { color: var(--success); }
+    .audit-fail { color: var(--danger); }
+    .audit-details h4 { margin: 0 0 4px 0; font-size: 15px; color: var(--text-main); }
+    .audit-details p { margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.4; }
     
     .issues-list { background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid var(--danger); }
     .issues-list li { color: #991b1b; margin-bottom: 8px; font-size: 15px;}
@@ -154,7 +162,7 @@ def home():
       document.getElementById('out').innerHTML = `
         <div class="card" style="text-align:center; padding: 40px;">
             <div style="font-size: 18px; font-weight: 500; color: var(--text-muted);">
-                <span style="display:inline-block; animation: pulse 1.5s infinite;">Scanning architecture & executing double PageSpeed check...</span>
+                <span style="display:inline-block; animation: pulse 1.5s infinite;">Running full technical and security audits...</span>
             </div>
         </div>
         <style>@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }</style>
@@ -237,7 +245,7 @@ def home():
                         <div><div class="metric-value">${data.links.external_count}</div><div class="metric-name">External Links</div></div>
                     </div>
                     <div class="metric-box">
-                        <div><div class="metric-value">${data.images.total}</div><div class="metric-name">Images (${data.images.missing_alt_count} missing ALT)</div></div>
+                        <div><div class="metric-value">${data.images.total}</div><div class="metric-name">Images</div></div>
                     </div>
                     <div class="metric-box">
                         <div><div class="metric-value">${data.content.word_count}</div><div class="metric-name">Words Processed</div></div>
@@ -247,6 +255,76 @@ def home():
                     </div>
                     <div class="metric-box">
                         <div><div class="metric-value">${data.server.status_code}</div><div class="metric-name">HTTP Status</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Technical & Security Audits</div>
+                <div class="audit-grid">
+                    
+                    <div class="audit-item">
+                        <div class="audit-icon ${data.technical.https ? 'audit-pass' : 'audit-fail'}">${data.technical.https ? '✅' : '❌'}</div>
+                        <div class="audit-details">
+                            <h4>SSL Checker and HTTPS</h4>
+                            <p>${data.technical.https ? 'Website is successfully using HTTPS, a secure communication protocol.' : 'Warning: Website is not using HTTPS securely.'}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="audit-item">
+                        <div class="audit-icon ${data.technical.hsts ? 'audit-pass' : 'audit-fail'}">${data.technical.hsts ? '✅' : '❌'}</div>
+                        <div class="audit-details">
+                            <h4>HSTS Test</h4>
+                            <p>${data.technical.hsts ? 'Website is using Strict-Transport-Security to force secure connections.' : 'Website is not using the Strict-Transport-Security header.'}</p>
+                        </div>
+                    </div>
+
+                    <div class="audit-item">
+                        <div class="audit-icon ${data.technical.html_size_kb <= 33 ? 'audit-pass' : 'audit-fail'}">${data.technical.html_size_kb <= 33 ? '✅' : '❌'}</div>
+                        <div class="audit-details">
+                            <h4>HTML Page Size Test</h4>
+                            <p>The size of this HTML document is <b>${data.technical.html_size_kb} Kb</b>. ${data.technical.html_size_kb > 33 ? 'This is greater than the 33Kb average.' : 'This is optimal for loading speeds.'}</p>
+                        </div>
+                    </div>
+
+                    <div class="audit-item">
+                        <div class="audit-icon ${data.technical.has_schema ? 'audit-pass' : 'audit-fail'}">${data.technical.has_schema ? '✅' : '❌'}</div>
+                        <div class="audit-details">
+                            <h4>Schema.org Structured Data</h4>
+                            <p>${data.technical.has_schema ? 'Using JSON-LD or Microdata Schema to help search engines understand content.' : 'Missing Schema structured data markup.'}</p>
+                        </div>
+                    </div>
+
+                    <div class="audit-item">
+                        <div class="audit-icon ${data.technical.has_ga ? 'audit-pass' : 'audit-fail'}">${data.technical.has_ga ? '✅' : '❌'}</div>
+                        <div class="audit-details">
+                            <h4>Google Analytics Test</h4>
+                            <p>${data.technical.has_ga ? 'Google tracking scripts detected on the webpage.' : 'No Google Analytics scripts detected.'}</p>
+                        </div>
+                    </div>
+
+                    <div class="audit-item">
+                        <div class="audit-icon ${data.technical.has_favicon ? 'audit-pass' : 'audit-fail'}">${data.technical.has_favicon ? '✅' : '❌'}</div>
+                        <div class="audit-details">
+                            <h4>Favicon Test</h4>
+                            <p>${data.technical.has_favicon ? 'This website appears to have a valid favicon.' : 'No favicon link tag found.'}</p>
+                        </div>
+                    </div>
+
+                    <div class="audit-item">
+                        <div class="audit-icon ${data.technical.lang_attr ? 'audit-pass' : 'audit-fail'}">${data.technical.lang_attr ? '✅' : '❌'}</div>
+                        <div class="audit-details">
+                            <h4>Language Attribute</h4>
+                            <p>${data.technical.lang_attr ? `Page is using the Lang Attribute (Declared: ${data.technical.lang_attr}).` : 'Missing HTML lang attribute for international SEO.'}</p>
+                        </div>
+                    </div>
+
+                    <div class="audit-item">
+                        <div class="audit-icon ${data.technical.has_hreflang ? 'audit-pass' : 'audit-fail'}">${data.technical.has_hreflang ? '✅' : '❌'}</div>
+                        <div class="audit-details">
+                            <h4>Hreflang Usage</h4>
+                            <p>${data.technical.has_hreflang ? 'Page makes use of Hreflang attributes for multi-region targeting.' : 'Page is not making use of Hreflang attributes.'}</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -385,8 +463,12 @@ def analyze(url: str):
         
         status_code = r.status_code
         final_url = r.url 
-
-        # Site File Checker
+        
+        # --- NEW: Technical Data Extraction ---
+        html_size_kb = round(len(r.content) / 1024, 2)
+        is_https = final_url.startswith("https")
+        has_hsts = "strict-transport-security" in (k.lower() for k in r.headers.keys())
+        
         parsed_url = urlparse(final_url)
         base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
         
@@ -406,6 +488,7 @@ def analyze(url: str):
         soup = BeautifulSoup(r.text, "html.parser")
         js_rendered = False
 
+        # --- Playwright Fallback ---
         text_check = soup.get_text(separator=" ")
         words_check = [w for w in text_check.split() if len(w) > 2]
         
@@ -424,7 +507,26 @@ def analyze(url: str):
             except Exception as inner_e:
                 print(f"Playwright fallback failed: {inner_e}")
 
-        # --- Helper for Google API Check ---
+        # --- Additional Technical Audits ---
+        # 1. Favicon
+        icon_tag = soup.find("link", rel=lambda x: x and "icon" in x.lower())
+        has_favicon = bool(icon_tag)
+        
+        # 2. Google Analytics
+        scripts = soup.find_all("script")
+        has_ga = any("google-analytics.com" in str(s) or "googletagmanager.com" in str(s) for s in scripts)
+        
+        # 3. Schema Structured Data
+        has_schema = bool(soup.find("script", type="application/ld+json") or soup.find(attrs={"itemtype": True}))
+        
+        # 4. Hreflang
+        has_hreflang = bool(soup.find("link", hreflang=True))
+        
+        # 5. HTML Lang attribute
+        html_tag = soup.find("html")
+        lang_attr = html_tag.get("lang") if html_tag else None
+
+        # --- Google PSI Check ---
         def get_psi_data(target_url, strategy, key):
             try:
                 api_url = f"https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url={target_url}&strategy={strategy}&key={key}"
@@ -457,7 +559,6 @@ def analyze(url: str):
         apiKey = "AIzaSyAJSIWD5LTnZK_yC4mKeyxw76COHxdESPU"
         mobile_psi = get_psi_data(url, "mobile", apiKey)
         desktop_psi = get_psi_data(url, "desktop", apiKey)
-        # ------------------------------------
 
         title = soup.title.string.strip() if soup.title and soup.title.string else "No title"
         meta_desc_tag = soup.find("meta", attrs={"name": "description"})
@@ -568,6 +669,16 @@ def analyze(url: str):
                 "desktop": desktop_psi
             },
             "server": {"status_code": status_code, "load_time_seconds": load_time},
+            "technical": {
+                "https": is_https,
+                "hsts": has_hsts,
+                "html_size_kb": html_size_kb,
+                "has_schema": has_schema,
+                "has_ga": has_ga,
+                "has_favicon": has_favicon,
+                "lang_attr": lang_attr,
+                "has_hreflang": has_hreflang
+            },
             "site_files": {"robots": has_robots, "sitemap": has_sitemap, "llms": has_llms},
             "indexing": {"canonical": canonical, "meta_robots": meta_robots},
             "content": {
