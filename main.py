@@ -7,6 +7,7 @@ import json
 import time
 import re
 from collections import Counter
+import concurrent.futures
 
 app = FastAPI()
 
@@ -156,7 +157,7 @@ def home():
       document.getElementById('out').innerHTML = `
         <div class="card" style="text-align:center; padding: 40px;">
             <div style="font-size: 18px; font-weight: 500; color: var(--text-muted);">
-                <span style="display:inline-block; animation: pulse 1.5s infinite;">Running full technical and security audits...</span>
+                <span style="display:inline-block; animation: pulse 1.5s infinite;">Running parallel technical audits and fetching PageSpeed APIs...</span>
             </div>
         </div>
         <style>@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }</style>
@@ -546,9 +547,23 @@ def analyze(url: str):
                 print(f"Playwright fallback failed: {inner_e}")
 
         # --- Additional Technical Audits ---
-        icon_tag = soup.find("link", rel=lambda x: x and "icon" in x.lower())
-        has_favicon = bool(icon_tag)
         
+        # 1. Smarter Favicon Check (handles list types)
+        has_favicon = False
+        for link in soup.find_all("link"):
+            rel_attr = link.get("rel", [])
+            if isinstance(rel_attr, list):
+                if any("icon" in r.lower() for r in rel_attr):
+                    has_favicon = True
+                    break
+            elif isinstance(rel_attr, str) and "icon" in rel_attr.lower():
+                has_favicon = True
+                break
+                
+        # Secondary fallback: explicitly check for the file if tag is missing
+        if not has_favicon:
+            has_favicon = check_file("favicon.ico")
+
         scripts = soup.find_all("script")
         has_ga = any("google-analytics.com" in str(s) or "googletagmanager.com" in str(s) for s in scripts)
         
@@ -566,7 +581,7 @@ def analyze(url: str):
         meta_robots = robots_tag["content"] if robots_tag and robots_tag.get("content") else "Index, Follow"
         noindex_pass = "noindex" not in meta_robots.lower()
 
-        # --- Google PSI Check ---
+        # --- Parallel Google PSI Checks ---
         def get_psi_data(target_url, strategy, key):
             try:
                 api_url = f"https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url={target_url}&strategy={strategy}&key={key}"
@@ -581,7 +596,6 @@ def analyze(url: str):
                     cls_v = float(audits["cumulative-layout-shift"]["numericValue"])
                     tbt_v = float(audits["total-blocking-time"]["numericValue"])
                     
-                    # 2. Responsive Image Pass/Fail (Extracted from Google data)
                     responsive_images_score = audits.get("uses-responsive-images", {}).get("score", 0)
                     responsive_pass = responsive_images_score >= 0.9
 
@@ -602,10 +616,14 @@ def analyze(url: str):
 
         # REMEMBER TO PASTE YOUR REAL API KEY HERE!
         apiKey = "AIzaSyAJSIWD5LTnZK_yC4mKeyxw76COHxdESPU"
-        mobile_psi = get_psi_data(url, "mobile", apiKey)
-        desktop_psi = get_psi_data(url, "desktop", apiKey)
         
-        # Combine responsive image check (pass if mobile passes)
+        # We run both requests concurrently to cut the loading time in half!
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            mobile_future = executor.submit(get_psi_data, url, "mobile", apiKey)
+            desktop_future = executor.submit(get_psi_data, url, "desktop", apiKey)
+            mobile_psi = mobile_future.result()
+            desktop_psi = desktop_future.result()
+        
         responsive_images_pass = mobile_psi.get("responsive_pass", False)
 
         title = soup.title.string.strip() if soup.title and soup.title.string else "No title"
