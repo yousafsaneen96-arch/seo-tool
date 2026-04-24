@@ -8,6 +8,7 @@ import time
 import re
 from collections import Counter
 import concurrent.futures
+import os
 
 app = FastAPI()
 
@@ -36,39 +37,14 @@ def home():
     img { max-width: 100%; height: auto; }
     .container { max-width: 1100px; margin: 0 auto 50px auto; padding: 0 20px; }
     
-    /* Premium Floating Navigation Bar */
-    .top-nav { display: flex; justify-content: center; position: sticky; top: 20px; z-index: 100; margin-bottom: 40px; padding: 0 20px; }
-    .nav-container { 
-        background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(248,250,252,0.90)); 
-        padding: 8px; 
-        border-radius: 50px; 
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(226, 232, 240, 0.6); 
-        backdrop-filter: blur(12px); 
-        -webkit-backdrop-filter: blur(12px); 
-        display: inline-flex; 
-        gap: 5px; 
-    }
-    .nav-btn { 
-        font-family: 'Poppins', sans-serif; 
-        padding: 12px 32px; 
-        border-radius: 50px; 
-        font-size: 15px; 
-        font-weight: 600; 
-        cursor: pointer; 
-        border: none; 
-        background: transparent; 
-        color: var(--text-muted); 
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
-    }
-    .nav-btn:hover { color: var(--text-main); background: rgba(241, 245, 249, 0.8); }
-    .nav-btn.active { 
-        background: linear-gradient(135deg, var(--primary), var(--secondary)); 
-        color: white; 
-        box-shadow: 0 4px 15px -3px rgba(59, 130, 246, 0.4); 
-        transform: translateY(-1px); 
-    }
+    /* Premium Floating Nav */
+    .top-nav-wrapper { position: sticky; top: 20px; z-index: 100; display: flex; justify-content: center; width: 100%; margin-bottom: 40px; pointer-events: none; }
+    .nav-container { pointer-events: auto; display: inline-flex; gap: 5px; padding: 6px; background: linear-gradient(145deg, rgba(255, 255, 255, 0.85), rgba(241, 245, 249, 0.75)); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 50px; border: 1px solid rgba(255,255,255,1); box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(226, 232, 240, 0.4); }
+    .nav-btn { padding: 12px 30px; border-radius: 50px; font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--text-muted); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .nav-btn:hover { color: var(--text-main); background: rgba(255,255,255,0.6); }
+    .nav-btn.active { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; box-shadow: 0 6px 15px -3px rgba(59, 130, 246, 0.4); text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 
-    .header-section { text-align: center; margin-bottom: 40px; margin-top: 20px; }
+    .header-section { text-align: center; margin-bottom: 40px; }
     h1 { font-size: 2.5rem; margin-bottom: 5px; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .brand { color: var(--text-muted); font-size: 14px; font-weight: 500; margin-bottom: 30px; }
     .search-box { display: flex; justify-content: center; gap: 15px; margin-bottom: 40px; }
@@ -157,7 +133,8 @@ def home():
 
     /* Content Specific UI */
     .content-highlight { color: var(--purple); font-weight: 600; }
-    .ai-placeholder { background: #fdf4ff; border: 1px dashed #f0abfc; padding: 20px; border-radius: 8px; text-align: center; color: #a21caf; font-size: 14px; }
+    .ai-placeholder { background: #fdf4ff; border: 1px solid #f0abfc; padding: 20px; border-radius: 8px; color: #701a75; font-size: 14px; line-height: 1.6; }
+    .ai-placeholder h3 { color: #a21caf; margin-top: 0; display: flex; align-items: center; gap: 8px; font-size: 18px;}
     .intent-box { display: inline-block; padding: 6px 12px; background: #f3e8ff; color: #7e22ce; border-radius: 6px; font-weight: 600; font-size: 14px; border: 1px solid #e879f9; }
 
     .pdf-header { display: none; text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
@@ -165,7 +142,7 @@ def home():
     .pdf-header p { color: var(--text-muted); margin: 5px 0 0 0; font-size: 14px; }
     </style>
 
-    <div class="top-nav">
+    <div class="top-nav-wrapper">
         <div class="nav-container">
             <button class="nav-btn active" id="tab-seo" onclick="switchTab('seo')">SEO Audit</button>
             <button class="nav-btn" id="tab-content" onclick="switchTab('content')">Content Checker</button>
@@ -328,6 +305,13 @@ def home():
                         <div class="score-sublabel">Lighthouse Score</div>
                     </div>
                 </div>
+
+                ${data.ai_suggestion ? `
+                <div class="ai-placeholder" style="margin-bottom: 25px; background: linear-gradient(to right, #fdf4ff, #faf5ff);">
+                    <h3>✨ AI Content Rewriter</h3>
+                    <div style="white-space: pre-wrap;">${data.ai_suggestion}</div>
+                </div>
+                ` : ''}
 
                 ${(data.issues.on_page.length > 0 || data.issues.technical.length > 0) ? `
                 <div class="issues-list" style="margin-top: 25px;">
@@ -566,6 +550,13 @@ def home():
                     </div>
                 </div>
 
+                ${data.ai_suggestion ? `
+                <div class="ai-placeholder" style="margin-bottom: 25px; background: linear-gradient(to right, #fdf4ff, #faf5ff);">
+                    <h3>✨ AI Content Strategy</h3>
+                    <div style="white-space: pre-wrap;">${data.ai_suggestion}</div>
+                </div>
+                ` : ''}
+
                 <div class="card">
                     <div class="card-title">E-E-A-T & Trust Signals</div>
                     <div class="audit-grid">
@@ -624,9 +615,6 @@ def home():
                             </div>
                         </div>
                     </div>
-                    <div class="ai-placeholder" style="margin-top: 20px;">
-                        <b>Advanced API Needed:</b> To unlock true <b>AI Content Detection</b> and strict <b>Plagiarism Sweeps</b>, API integration (e.g. OpenAI/Copyscape) is required.
-                    </div>
                 </div>
             </div>
         `;
@@ -663,6 +651,24 @@ def get_base_soup(url):
             pass
     return r, soup, js_rendered
 
+# --- NEW: OpenAI API Helper ---
+def get_openai_suggestion(prompt, api_key):
+    if not api_key or api_key == "YOUR_OPENAI_API_KEY_HERE": return None
+    try:
+        headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+        data = {
+            "model": "gpt-4o-mini",
+            "messages": [{"role": "system", "content": "You are a professional SEO copywriter and analyst."},
+                         {"role": "user", "content": prompt}],
+            "max_tokens": 250
+        }
+        res = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=data, timeout=15)
+        if res.status_code == 200:
+            return res.json()['choices'][0]['message']['content'].strip()
+    except Exception as e:
+        return f"AI Generation Failed: {str(e)}"
+    return None
+
 @app.get("/analyze")
 def analyze(url: str):
     try:
@@ -673,6 +679,10 @@ def analyze(url: str):
         
         start_time = time.time()
         load_time = round(time.time() - start_time, 2)
+
+        # YOUR API KEYS ARE SECURELY PULLED FROM ENVIRONMENT VARIABLES
+        google_api_key = os.getenv("GOOGLE_API_KEY", "YOUR_GOOGLE_API_KEY_HERE")
+        openai_api_key = os.getenv("OPENAI_API_KEY", "YOUR_OPENAI_API_KEY_HERE")
 
         html_size_kb = round(len(r.content) / 1024, 2)
         is_https = final_url.startswith("https")
@@ -766,12 +776,9 @@ def analyze(url: str):
             except Exception:
                 return {"score": "Timeout", "lcp": "Timeout", "cls": "Timeout", "inp": "Timeout", "responsive_pass": False}
 
-        # REMEMBER TO PASTE YOUR REAL API KEY HERE!
-        apiKey = "AIzaSyAJSIWD5LTnZK_yC4mKeyxw76COHxdESPU"
-        
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            mobile_future = executor.submit(get_psi_data, url, "mobile", apiKey)
-            desktop_future = executor.submit(get_psi_data, url, "desktop", apiKey)
+            mobile_future = executor.submit(get_psi_data, url, "mobile", google_api_key)
+            desktop_future = executor.submit(get_psi_data, url, "desktop", google_api_key)
             mobile_psi = mobile_future.result()
             desktop_psi = desktop_future.result()
         
@@ -799,7 +806,6 @@ def analyze(url: str):
 
         raw_text_blocks = soup.get_text(separator="\n")
         
-        # --- REGIONAL ENTITY CONSOLIDATION APPLIED BEFORE REGEX ---
         regional_entities = {
             "abu dhabi": "abudhabi",
             "saudi arabia": "saudiarabia",
@@ -811,7 +817,6 @@ def analyze(url: str):
         for region, merged in regional_entities.items():
             clean_text_lower = clean_text_lower.replace(region, merged)
 
-        # UNIFIED WORD EXTRACTION (Used in both endpoints now)
         raw_words = re.findall(r'\b[a-z0-9]{2,}\b', clean_text_lower)
         total_words = len(raw_words)
 
@@ -819,7 +824,6 @@ def analyze(url: str):
 
         phrase_counts = {1: Counter(), 2: Counter(), 3: Counter(), 4: Counter()}
 
-        # Re-split by line to maintain n-gram boundaries (preventing cross-line merging)
         for line in clean_text_lower.split('\n'):
             words_in_line = re.findall(r'\b[a-z0-9]{2,}\b', line)
             if not words_in_line: continue
@@ -865,19 +869,24 @@ def analyze(url: str):
         on_page_issues = []
         on_page_score = 100
         
+        needs_rewrite = False
         if title == "No title":
             on_page_issues.append("Missing Title Tag (-15)")
             on_page_score -= 15
+            needs_rewrite = True
         elif title_len < 30 or title_len > 60:
             on_page_issues.append(f"Title length is {title_len} chars (Optimal is 50-60) (-5)")
             on_page_score -= 5
+            needs_rewrite = True
             
         if meta_desc == "No meta description":
             on_page_issues.append("Missing Meta Description (-15)")
             on_page_score -= 15
+            needs_rewrite = True
         elif meta_desc_len < 120 or meta_desc_len > 160:
             on_page_issues.append(f"Meta Description length is {meta_desc_len} chars (Optimal is 150-160) (-5)")
             on_page_score -= 5
+            needs_rewrite = True
 
         if len(h1_list) == 0:
             on_page_issues.append("Missing H1 Tag (-10)")
@@ -944,6 +953,13 @@ def analyze(url: str):
         on_page_score = max(0, on_page_score)
         technical_score = max(0, technical_score)
 
+        # Trigger AI Generation if needed
+        ai_suggestion = None
+        if needs_rewrite and openai_api_key != "YOUR_OPENAI_API_KEY_HERE":
+            kw_list = [k['phrase'] for k in top_keywords['top_1'][:5]]
+            prompt = f"The website {url} has a bad meta title and description. Write exactly 1 perfect Meta Title (under 60 characters) and 1 compelling Meta Description (under 160 characters). Use these top keywords naturally: {kw_list}. Format clearly with bold headings."
+            ai_suggestion = get_openai_suggestion(prompt, openai_api_key)
+
         return {
             "js_rendered": js_rendered,
             "performance": {
@@ -980,7 +996,8 @@ def analyze(url: str):
                 "external_count": len(external_links), "external_urls": list(external_links)[:100]
             },
             "scores": {"on_page": on_page_score, "technical": technical_score},
-            "issues": {"on_page": on_page_issues, "technical": technical_issues}
+            "issues": {"on_page": on_page_issues, "technical": technical_issues},
+            "ai_suggestion": ai_suggestion
         }
 
     except Exception as e:
@@ -991,9 +1008,11 @@ def analyze_content(url: str):
     try:
         r, soup, js_rendered = get_base_soup(url)
         
-        text_clean = soup.get_text(separator=" ")
+        # YOUR API KEYS ARE SECURELY PULLED FROM ENVIRONMENT VARIABLES
+        openai_api_key = os.getenv("OPENAI_API_KEY", "YOUR_OPENAI_API_KEY_HERE")
+
+        text_clean = soup.get_text(separator="\n")
         
-        # --- REGIONAL ENTITY CONSOLIDATION APPLIED BEFORE REGEX ---
         regional_entities = {
             "abu dhabi": "abudhabi",
             "saudi arabia": "saudiarabia",
@@ -1005,7 +1024,6 @@ def analyze_content(url: str):
         for region, merged in regional_entities.items():
             clean_text_lower = clean_text_lower.replace(region, merged)
 
-        # UNIFIED WORD EXTRACTION
         raw_words = re.findall(r'\b[a-z0-9]{2,}\b', clean_text_lower)
         total_words = len(raw_words)
         
@@ -1089,6 +1107,13 @@ def analyze_content(url: str):
         tri_counts = Counter(tri_grams)
         repetition_score = round((sum(c for p, c in tri_counts.items() if c > 3) / max(len(tri_grams), 1)) * 100, 1)
 
+        # Trigger AI Generation for Content Strategy
+        ai_suggestion = None
+        if openai_api_key != "YOUR_OPENAI_API_KEY_HERE":
+            kw_list = [k['phrase'] for k in top_1[:5]]
+            prompt = f"The website {url} has a content score of {c_score}/100 and primary intent '{primary_intent}'. Write a 3-bullet-point high-level content strategy to improve this page, using these top keywords: {kw_list}."
+            ai_suggestion = get_openai_suggestion(prompt, openai_api_key)
+
         return {
             "content_score": c_score,
             "word_count": total_words,
@@ -1097,7 +1122,8 @@ def analyze_content(url: str):
             "intent": {"primary_intent": primary_intent, "tips": tips},
             "eeat": {"has_author": has_author, "has_contact_or_about": has_contact_or_about, "has_external_links": has_external},
             "keywords": {"top_1": top_1, "top_2": top_2, "top_3": top_3},
-            "ai_plagiarism": {"heuristic_repetition_score": repetition_score}
+            "ai_plagiarism": {"heuristic_repetition_score": repetition_score},
+            "ai_suggestion": ai_suggestion
         }
     except Exception as e:
         return {"error": str(e)}
