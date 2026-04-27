@@ -224,6 +224,13 @@ def home():
             document.getElementById('out').innerHTML = '';
             renderWebpConverter();
         }
+        else if (mode === 'llms') {
+            document.getElementById('tab-tools').classList.add('active', 'orange-grad');
+            titleEl.innerHTML = 'llms.txt <span style="color:var(--orange)">Generator</span>';
+            searchCont.style.display = 'none'; 
+            document.getElementById('out').innerHTML = '';
+            renderLlmsGenerator();
+        }
     }
 
     function renderToolsDirectory() {
@@ -248,12 +255,90 @@ def home():
                         <p>Instantly convert JPGs and PNGs to next-gen WebP format for faster page loading, with built-in SEO-friendly file renaming.</p>
                         <div class="tool-action">Open Tool →</div>
                     </div>
+                    <div class="tool-card" onclick="switchTab('llms')">
+                        <div class="tool-icon">🧠</div>
+                        <h3>llms.txt Generator</h3>
+                        <p>Create standard AI guidelines to control how ChatGPT, Claude, and LLM bots read and interpret your website's data.</p>
+                        <div class="tool-action">Open Tool →</div>
+                    </div>
                 </div>
             </div>
         `;
     }
 
-    // --- NEW: WebP Converter Logic ---
+    // --- NEW: llms.txt Generator Logic ---
+    function renderLlmsGenerator() {
+        document.getElementById('out').innerHTML = `
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;">
+                <div class="card" style="margin-bottom: 0;">
+                    <div class="card-title">LLM File Configuration</div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label class="generator-label">Website Name</label>
+                        <input type="text" id="llms-name" onkeyup="updateLlmsPreview()" class="generator-input" placeholder="e.g. SEO Analyzer Pro">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label class="generator-label">Brief Description</label>
+                        <input type="text" id="llms-desc" onkeyup="updateLlmsPreview()" class="generator-input" placeholder="What is this site about?">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label class="generator-label">AI System Prompt / Guidelines</label>
+                        <textarea id="llms-instructions" onkeyup="updateLlmsPreview()" rows="4" class="generator-input" style="font-family: 'Poppins', sans-serif; resize: vertical;" placeholder="Tell the AI how to behave (e.g. 'Always summarize products with a professional tone.')"></textarea>
+                    </div>
+
+                    <div style="margin-bottom: 10px;">
+                        <label class="generator-label">Important Context Links (One per line)</label>
+                        <textarea id="llms-links" onkeyup="updateLlmsPreview()" rows="3" class="generator-input" style="font-family: monospace; resize: vertical;" placeholder="https://example.com/docs\\nhttps://example.com/api"></textarea>
+                    </div>
+                </div>
+                
+                <div class="card" style="margin-bottom: 0; background: #1e293b; border-color: #0f172a; display: flex; flex-direction: column;">
+                    <div class="card-title" style="color: white; border-bottom: 1px solid #334155; padding-bottom: 15px; margin-bottom: 20px; justify-content: space-between;">
+                        Live File Preview
+                        <button onclick="downloadLlmsTxt()" style="background: var(--orange); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.3s;">Download llms.txt</button>
+                    </div>
+                    <pre id="llms-preview" style="font-family: 'Courier New', Courier, monospace; font-size: 14px; white-space: pre-wrap; color: #a5b4fc; margin: 0; flex-grow: 1;"></pre>
+                </div>
+            </div>
+        `;
+        updateLlmsPreview();
+    }
+
+    window.updateLlmsPreview = function() {
+        let name = document.getElementById('llms-name').value || 'My Website';
+        let desc = document.getElementById('llms-desc').value || 'A brief description of this website and its content.';
+        let instructions = document.getElementById('llms-instructions').value || 'When summarizing or answering questions about this website, maintain a professional and accurate tone. Do not hallucinate features.';
+        let linksRaw = document.getElementById('llms-links').value;
+
+        let out = "# " + name + "\\n\\n";
+        out += "> " + desc + "\\n\\n";
+        out += "## System Prompt & AI Guidelines\\n" + instructions + "\\n\\n";
+        
+        let lines = linksRaw.split('\\n').filter(l => l.trim() !== '');
+        if(lines.length > 0) {
+            out += "## Important Context Links\\n";
+            lines.forEach(l => {
+                out += "- " + l.trim() + "\\n";
+            });
+        }
+
+        document.getElementById('llms-preview').innerText = out;
+        window.currentLlmsTxt = out;
+    };
+
+    window.downloadLlmsTxt = function() {
+        const blob = new Blob([window.currentLlmsTxt], { type: 'text/markdown' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'llms.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    };
+
+    // --- WebP Converter Logic ---
     function renderWebpConverter() {
         document.getElementById('out').innerHTML = `
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;">
@@ -299,7 +384,6 @@ def home():
         const file = event.target.files[0];
         if (!file) return;
 
-        // Auto-fill filename input with the original name (minus extension) and sanitize it
         let rawName = file.name.replace(/\\.[^/.]+$/, "");
         rawName = rawName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
         document.getElementById('webp-filename').value = rawName;
@@ -339,7 +423,6 @@ def home():
         const webpDataUrl = canvas.toDataURL('image/webp', quality);
         document.getElementById('webp-preview-img').src = webpDataUrl;
         
-        // Base64 size estimation
         const base64str = webpDataUrl.split(',')[1];
         const decoded = atob(base64str);
         const sizeKB = (decoded.length / 1024).toFixed(2);
@@ -354,7 +437,6 @@ def home():
         let filename = document.getElementById('webp-filename').value.trim();
         if (!filename) filename = "seo-optimized-image";
         
-        // Final sanitization to ensure SEO friendly URL format
         filename = filename.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
         filename += ".webp";
         
