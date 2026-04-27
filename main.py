@@ -67,14 +67,14 @@ def home():
     .card { background: var(--card-bg); border-radius: 20px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03); transition: transform 0.3s ease, box-shadow 0.3s ease; border: 1px solid #f1f5f9; overflow: hidden; page-break-inside: avoid; break-inside: avoid; }
     .card-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 20px; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
 
-    /* Yoast-Style Sitemap Table */
-    .yoast-table-wrapper { background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    .yoast-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
-    .yoast-table th { background: #3b82f6; color: white; padding: 12px 20px; font-weight: 600; }
-    .yoast-table td { padding: 12px 20px; border-bottom: 1px solid #e2e8f0; color: #3b82f6; }
-    .yoast-table td:last-child { color: #64748b; }
-    .yoast-table tr:last-child td { border-bottom: none; }
-    .yoast-table tr:hover td { background: #f8fafc; }
+    /* Structured Sitemap Table */
+    .sitemap-table-wrapper { background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .sitemap-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+    .sitemap-table th { background: #3b82f6; color: white; padding: 12px 20px; font-weight: 600; }
+    .sitemap-table td { padding: 12px 20px; border-bottom: 1px solid #e2e8f0; color: #3b82f6; }
+    .sitemap-table td:last-child { color: #64748b; }
+    .sitemap-table tr:last-child td { border-bottom: none; }
+    .sitemap-table tr:hover td { background: #f8fafc; }
 
     .scores-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; margin-bottom: 25px; }
     .score-card { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; page-break-inside: avoid; break-inside: avoid; }
@@ -215,7 +215,7 @@ def home():
                     <div class="tool-card" onclick="switchTab('sitemap')">
                         <div class="tool-icon">🗺️</div>
                         <h3>XML Sitemap Generator</h3>
-                        <p>Deep hybrid crawl tool. Categorizes URLs into Posts, Pages, and Categories to generate a perfectly structured, Yoast-style XML Sitemap Index.</p>
+                        <p>Deep hybrid crawl tool. Categorizes URLs into Posts, Pages, and Categories to generate a perfectly structured XML Sitemap Index.</p>
                         <div class="tool-action">Open Tool →</div>
                     </div>
                 </div>
@@ -264,8 +264,7 @@ def home():
         html2pdf().set(opt).from(element).save().then(() => { header.style.display = 'none'; });
     }
 
-    // NEW: Yoast-style XSLT Stylesheet string
-    const xsltContent = `<?xml version="1.0" encoding="UTF-8"?>
+    const xsltContent = \`<?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:sitemap="http://www.sitemaps.org/schemas/sitemap/0.9">
   <xsl:template match="/">
     <html>
@@ -299,13 +298,16 @@ def home():
       </body>
     </html>
   </xsl:template>
-</xsl:stylesheet>`;
+</xsl:stylesheet>\`;
 
-    // Creates a single XML file string
-    function createXMLString(urls, type = "urlset", baseDomain = "") {
+    // Included an option to remove the XSL styling for flat files so browsers render them correctly
+    function createXMLString(urls, type = "urlset", baseDomain = "", includeXSL = false) {
         let dateStr = new Date().toISOString().split('T')[0] + "T12:00:00+00:00";
         let xml = '<?xml version="1.0" encoding="UTF-8"?>\\n';
-        xml += '<?xml-stylesheet type="text/xsl" href="main-sitemap.xsl"?>\\n';
+        
+        if (includeXSL) {
+            xml += '<?xml-stylesheet type="text/xsl" href="main-sitemap.xsl"?>\\n';
+        }
         
         if (type === "sitemapindex") {
             xml += '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n';
@@ -324,12 +326,12 @@ def home():
         return xml;
     }
 
-    // Downloads a flat sitemap.xml (All URLs in one file)
     function downloadFlatSitemap() {
         let allUrls = [];
         Object.values(window.sitemapData).forEach(arr => { allUrls = allUrls.concat(arr); });
         
-        let xml = createXMLString(allUrls, "urlset", window.sitemapDomain);
+        // Pass false so flat files do not require XSL stylesheets
+        let xml = createXMLString(allUrls, "urlset", window.sitemapDomain, false);
         const blob = new Blob([xml], { type: 'application/xml' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
@@ -339,7 +341,6 @@ def home():
         document.body.removeChild(a);
     }
 
-    // Downloads a Yoast-style ZIP package
     function downloadStructuredSitemapZip() {
         var zip = new JSZip();
         zip.file("main-sitemap.xsl", xsltContent);
@@ -353,12 +354,11 @@ def home():
             if (urls.length > 0) {
                 let filename = key + "-sitemap.xml";
                 indexLinks.push(baseUrl + "/" + filename);
-                zip.file(filename, createXMLString(urls, "urlset", baseUrl));
+                zip.file(filename, createXMLString(urls, "urlset", baseUrl, true));
             }
         });
 
-        // The main index file MUST be named sitemap.xml
-        zip.file("sitemap.xml", createXMLString(indexLinks, "sitemapindex"));
+        zip.file("sitemap.xml", createXMLString(indexLinks, "sitemapindex", "", true));
 
         zip.generateAsync({type:"blob"}).then(function(content) {
             const a = document.createElement('a');
@@ -429,17 +429,17 @@ def home():
                 <h2 style="margin: 0; color: var(--text-main); font-size: 1.5rem;">Sitemap Generated</h2>
                 <div style="display:flex; gap:10px;">
                     <button class="xml-btn-outline" onclick="downloadFlatSitemap()">Download sitemap.xml (Flat)</button>
-                    <button class="xml-btn" onclick="downloadStructuredSitemapZip()">Download Yoast ZIP Package</button>
+                    <button class="xml-btn" onclick="downloadStructuredSitemapZip()">Download Structured ZIP Package</button>
                 </div>
             </div>
             
             <div class="card" style="padding: 0; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-                <div class="yoast-table-wrapper">
+                <div class="sitemap-table-wrapper">
                     <div style="padding: 20px; background: white; border-bottom: 1px solid #e2e8f0;">
                         <h2 style="margin: 0 0 10px 0; color: #1e293b; font-size: 24px;">XML Sitemap Index</h2>
                         <p style="margin: 0; color: #64748b; font-size: 14px;">Generated by <b>SEO Analyzer Pro</b>. This XML Sitemap Index file contains <b>${data.count}</b> total URLs divided across categorized sitemaps.</p>
                     </div>
-                    <table class="yoast-table">
+                    <table class="sitemap-table">
                         <tr><th>Sitemap Name</th><th>Last Modified</th></tr>
                         ${tableRows}
                     </table>
@@ -876,7 +876,6 @@ def generate_sitemap(url: str):
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
         }
         
-        # --- ENTERPRISE SITEMAP SEEDING ---
         sitemap_endpoints = ['/sitemap.xml', '/sitemap_index.xml', '/post-sitemap.xml', '/page-sitemap.xml']
         for endpoint in sitemap_endpoints:
             try:
@@ -892,7 +891,7 @@ def generate_sitemap(url: str):
             except:
                 pass
 
-        max_pages = 500 
+        max_pages = 1000 
         timeout = 45 
         start_time = time.time()
         
@@ -933,7 +932,6 @@ def generate_sitemap(url: str):
                 
         final_urls = sorted(list(visited))
         
-        # --- URL CATEGORIZATION LOGIC ---
         categorized = {"page": [], "post": [], "category": [], "other": []}
         for u in final_urls:
             path = urlparse(u).path
@@ -1018,7 +1016,7 @@ def analyze(url: str):
         html_tag = soup.find("html")
         lang_attr = html_tag.get("lang") if html_tag else None
 
-        canonical_tag = soup.find("link", rel="canonical")
+        canonical_tag = soup.find("link", relcanonical="canonical")
         canonical = canonical_tag["href"] if canonical_tag and canonical_tag.get("href") else "Missing"
         canonical_pass = canonical != "Missing"
 
