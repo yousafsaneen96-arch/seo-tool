@@ -49,7 +49,7 @@ def home():
     .header-section { text-align: center; margin-bottom: 40px; }
     h1 { font-size: 2.5rem; margin-bottom: 5px; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; transition: all 0.3s ease; }
     .brand { color: var(--text-muted); font-size: 14px; font-weight: 500; margin-bottom: 30px; }
-    .search-box { display: flex; justify-content: center; gap: 15px; margin-bottom: 40px; }
+    .search-box { display: flex; justify-content: center; gap: 15px; margin-bottom: 40px; transition: opacity 0.3s ease; }
     input { padding: 16px 24px; width: 60%; border-radius: 50px; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); font-size: 16px; font-family: 'Poppins', sans-serif; outline: none; transition: all 0.3s ease; }
     input:focus { border-color: var(--primary); box-shadow: 0 10px 25px -3px rgba(59, 130, 246, 0.2); }
     
@@ -81,7 +81,6 @@ def home():
     .metric-value { font-size: 1.5rem; font-weight: 700; color: var(--text-main); }
     .metric-name { font-size: 0.875rem; color: var(--text-muted); font-weight: 500;}
 
-    /* Expandable Accordions & Lists */
     details.accordion { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 15px; overflow: hidden; page-break-inside: avoid; break-inside: avoid; }
     details.accordion summary { padding: 15px 20px; font-weight: 600; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; transition: background 0.2s; }
     details.accordion summary:hover { background: #e2e8f0; }
@@ -95,7 +94,6 @@ def home():
     .sitemap-list div { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0; word-break: break-all; }
     .sitemap-list div:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
 
-    /* Content Specific UI */
     .content-highlight { color: var(--purple); font-weight: 600; }
     .ai-placeholder { background: #fdf4ff; border: 1px solid #f0abfc; padding: 20px; border-radius: 8px; color: #701a75; font-size: 14px; line-height: 1.6; }
     .ai-placeholder h3 { color: #a21caf; margin-top: 0; display: flex; align-items: center; gap: 8px; font-size: 18px;}
@@ -129,13 +127,22 @@ def home():
     
     .badge-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
     .keyword-badge { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; padding: 6px 14px; border-radius: 50px; font-size: 13px; font-weight: 500; }
+
+    /* Tools Hub Grid */
+    .tools-hub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+    .tool-card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; background: white; transition: all 0.3s ease; cursor: pointer; display: flex; flex-direction: column; }
+    .tool-card:hover { transform: translateY(-5px); border-color: var(--orange); box-shadow: 0 10px 20px -5px rgba(249, 115, 22, 0.15); }
+    .tool-icon { font-size: 32px; margin-bottom: 15px; }
+    .tool-card h3 { margin: 0 0 10px 0; color: var(--text-main); font-size: 18px; }
+    .tool-card p { margin: 0 0 20px 0; font-size: 13px; color: var(--text-muted); line-height: 1.5; flex-grow: 1; }
+    .tool-action { font-weight: 600; font-size: 14px; color: var(--orange); display: flex; align-items: center; gap: 5px; }
     </style>
 
     <div class="top-nav-wrapper">
         <div class="nav-container">
             <button class="nav-btn active" id="tab-seo" onclick="switchTab('seo')">SEO Audit</button>
             <button class="nav-btn" id="tab-content" onclick="switchTab('content')">Content Checker</button>
-            <button class="nav-btn" id="tab-sitemap" onclick="switchTab('sitemap')">Sitemap Generator</button>
+            <button class="nav-btn" id="tab-tools" onclick="switchTab('tools')">Tools Hub</button>
         </div>
     </div>
 
@@ -143,7 +150,7 @@ def home():
       <div class="header-section">
           <h1 id="app-title">SEO Analyzer Pro</h1>
           <div class="brand">Built by Yousaf Saneen</div>
-          <div class="search-box">
+          <div class="search-box" id="search-container">
               <input id='url' placeholder='https://example.com/'>
               <button class="primary-btn" id="analyze-btn" onclick='run()'>Run SEO Audit</button>
           </div>
@@ -156,29 +163,61 @@ def home():
 
     function switchTab(mode) {
         currentMode = mode;
+        
+        // Reset Tabs
         document.getElementById('tab-seo').classList.remove('active');
         document.getElementById('tab-content').classList.remove('active');
-        document.getElementById('tab-sitemap').classList.remove('active', 'orange-grad');
+        document.getElementById('tab-tools').classList.remove('active', 'orange-grad');
         
         let titleEl = document.getElementById('app-title');
         let btnEl = document.getElementById('analyze-btn');
+        let searchCont = document.getElementById('search-container');
+        
         btnEl.classList.remove('orange-btn');
 
         if (mode === 'seo') {
             document.getElementById('tab-seo').classList.add('active');
             titleEl.innerHTML = 'SEO Analyzer <span style="color:var(--primary)">Pro</span>';
             btnEl.innerText = 'Run SEO Audit';
-        } else if (mode === 'content') {
+            searchCont.style.display = 'flex';
+            document.getElementById('out').innerHTML = '';
+        } 
+        else if (mode === 'content') {
             document.getElementById('tab-content').classList.add('active');
             titleEl.innerHTML = 'Content <span style="color:var(--purple)">Checker</span>';
             btnEl.innerText = 'Analyze Content';
-        } else if (mode === 'sitemap') {
-            document.getElementById('tab-sitemap').classList.add('active', 'orange-grad');
+            searchCont.style.display = 'flex';
+            document.getElementById('out').innerHTML = '';
+        } 
+        else if (mode === 'tools') {
+            document.getElementById('tab-tools').classList.add('active');
+            titleEl.innerHTML = 'SEO Tools <span style="color:var(--orange)">Hub</span>';
+            searchCont.style.display = 'none'; // Hide search box on Hub page
+            renderToolsDirectory();
+        }
+        else if (mode === 'sitemap') {
+            document.getElementById('tab-tools').classList.add('active', 'orange-grad');
             titleEl.innerHTML = 'XML Sitemap <span style="color:var(--orange)">Generator</span>';
             btnEl.innerText = 'Generate Sitemap';
             btnEl.classList.add('orange-btn');
+            searchCont.style.display = 'flex';
+            document.getElementById('out').innerHTML = '';
         }
-        document.getElementById('out').innerHTML = '';
+    }
+
+    function renderToolsDirectory() {
+        document.getElementById('out').innerHTML = `
+            <div class="card" style="background: transparent; border: none; box-shadow: none; padding: 0;">
+                <div class="tools-hub-grid">
+                    <div class="tool-card" onclick="switchTab('sitemap')">
+                        <div class="tool-icon">🗺️</div>
+                        <h3>XML Sitemap Generator</h3>
+                        <p>Deep crawl any website to extract all active internal links and automatically generate a complete, formatted sitemap.xml file ready for Google Search Console.</p>
+                        <div class="tool-action">Open Tool →</div>
+                    </div>
+                    </div>
+            </div>
+        `;
     }
 
     function getScoreColor(score) {
@@ -241,8 +280,7 @@ def home():
         const blob = new Blob([xml], { type: 'application/xml' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        let cleanUrl = domain.replace('https://', '').replace('http://', '').replaceAll('/', '');
-        a.download = 'sitemap_' + cleanUrl + '.xml';
+        a.download = 'sitemap.xml';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -254,14 +292,14 @@ def home():
       if(!url.startsWith('http')) url = 'https://' + url;
 
       let modeText = currentMode === 'seo' ? 'Technical SEO Audit & AI Engine' : 
-                     currentMode === 'content' ? 'Deep Content Analysis' : 'Spider Crawl & Link Extraction';
+                     currentMode === 'content' ? 'Deep Content Analysis' : 'Spider Crawl & Deep Link Extraction';
 
       document.getElementById('out').innerHTML = `
         <div class="card" style="text-align:center; padding: 40px;">
             <div style="font-size: 18px; font-weight: 500; color: var(--text-muted);">
                 <span style="display:inline-block; animation: pulse 1.5s infinite;">Running ${modeText}...</span>
             </div>
-            ${currentMode === 'sitemap' ? '<div style="font-size:13px; color:#94a3b8; margin-top:10px;">Spidering up to 100 pages. This may take up to 15 seconds.</div>' : ''}
+            ${currentMode === 'sitemap' ? '<div style="font-size:13px; color:#94a3b8; margin-top:10px;">Spidering up to 500 pages. This may take up to 45 seconds to process completely.</div>' : ''}
         </div>
         <style>@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }</style>
       `;
@@ -291,7 +329,7 @@ def home():
     }
 
     function renderSitemap(data, url) {
-        window.sitemapData = data.urls; // Store globally for the download button
+        window.sitemapData = data.urls; 
         window.sitemapDomain = url;
         
         document.getElementById('out').innerHTML = `
@@ -746,8 +784,8 @@ def generate_sitemap(url: str):
         visited = set()
         to_visit = set([url])
         
-        max_pages = 100 
-        timeout = 15 
+        max_pages = 500 
+        timeout = 45 
         start_time = time.time()
         
         headers = {"User-Agent": "Mozilla/5.0"}
