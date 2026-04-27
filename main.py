@@ -31,6 +31,7 @@ def home():
         --warning: #f59e0b;
         --danger: #ef4444;
         --purple: #8b5cf6;
+        --orange: #f97316;
     }
 
     body { margin: 0; font-family: 'Poppins', sans-serif; background-color: var(--bg-color); color: var(--text-main); }
@@ -43,17 +44,25 @@ def home():
     .nav-btn { padding: 12px 30px; border-radius: 50px; font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--text-muted); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     .nav-btn:hover { color: var(--text-main); background: rgba(255,255,255,0.6); }
     .nav-btn.active { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; box-shadow: 0 6px 15px -3px rgba(59, 130, 246, 0.4); text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .nav-btn.active.orange-grad { background: linear-gradient(135deg, var(--orange), #fb923c); box-shadow: 0 6px 15px -3px rgba(249, 115, 22, 0.4); }
 
     .header-section { text-align: center; margin-bottom: 40px; }
-    h1 { font-size: 2.5rem; margin-bottom: 5px; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    h1 { font-size: 2.5rem; margin-bottom: 5px; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; transition: all 0.3s ease; }
     .brand { color: var(--text-muted); font-size: 14px; font-weight: 500; margin-bottom: 30px; }
     .search-box { display: flex; justify-content: center; gap: 15px; margin-bottom: 40px; }
     input { padding: 16px 24px; width: 60%; border-radius: 50px; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); font-size: 16px; font-family: 'Poppins', sans-serif; outline: none; transition: all 0.3s ease; }
     input:focus { border-color: var(--primary); box-shadow: 0 10px 25px -3px rgba(59, 130, 246, 0.2); }
+    
     button.primary-btn { padding: 16px 32px; background: linear-gradient(135deg, var(--primary), var(--secondary)); background-size: 200% auto; border: none; border-radius: 50px; color: white; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3); transition: all 0.4s ease; }
     button.primary-btn:hover { background-position: right center; transform: translateY(-2px); }
+    
+    button.primary-btn.orange-btn { background: linear-gradient(135deg, var(--orange), #fb923c); box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.3); }
+    
     button.pdf-btn { padding: 10px 24px; background: #1e293b; border: none; border-radius: 8px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.3s; display: flex; align-items: center; gap: 8px; }
     button.pdf-btn:hover { background: #334155; }
+    
+    button.xml-btn { padding: 10px 24px; background: var(--orange); border: none; border-radius: 8px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.3s; display: flex; align-items: center; gap: 8px; }
+    button.xml-btn:hover { background: #ea580c; }
 
     .card { background: var(--card-bg); border-radius: 20px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03); transition: transform 0.3s ease, box-shadow 0.3s ease; border: 1px solid #f1f5f9; overflow: hidden; page-break-inside: avoid; break-inside: avoid; }
     .card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
@@ -72,21 +81,7 @@ def home():
     .metric-value { font-size: 1.5rem; font-weight: 700; color: var(--text-main); }
     .metric-name { font-size: 0.875rem; color: var(--text-muted); font-weight: 500;}
 
-    /* SERP Simulator */
-    .serp-preview { background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; max-width: 650px; font-family: arial, sans-serif; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 20px; word-break: break-word; }
-    .serp-url { color: #202124; font-size: 14px; margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
-    .serp-title { color: #1a0dab; font-size: 20px; line-height: 1.3; margin-bottom: 4px; cursor: pointer; display: inline-block; }
-    .serp-title:hover { text-decoration: underline; }
-    .serp-desc { color: #4d5156; font-size: 14px; line-height: 1.58; word-wrap: break-word; }
-
-    .char-check-block { border-top: 1px solid #e2e8f0; padding-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-    .char-status { padding: 15px; border-radius: 8px; font-size: 14px;}
-    .char-val { font-size: 20px; font-weight: 700; margin-bottom: 5px;}
-    .char-ok { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
-    .char-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
-    .meta-website-used { display: block; background: #f8fafc; padding: 10px 15px; border-radius: 6px; margin: 10px 0; font-size: 13px; color: var(--text-main); border: 1px solid #e2e8f0; word-break: break-word; white-space: normal; }
-
-    /* Expandable Accordions */
+    /* Expandable Accordions & Lists */
     details.accordion { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 15px; overflow: hidden; page-break-inside: avoid; break-inside: avoid; }
     details.accordion summary { padding: 15px 20px; font-weight: 600; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; transition: background 0.2s; }
     details.accordion summary:hover { background: #e2e8f0; }
@@ -96,40 +91,9 @@ def home():
     .url-list-item { padding: 6px 0; border-bottom: 1px solid #f1f5f9; }
     .url-list-item:last-child { border-bottom: none; }
 
-    .cwv-subgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 15px; }
-    .cwv-item { display: flex; align-items: center; gap: 15px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
-    .cwv-badge { padding: 2px 8px; font-size: 11px; font-weight: 700; border-radius: 4px; color: white; margin-left: 8px; }
-
-    /* Tags & Badges */
-    .badge-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
-    .tag-box { background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--primary); font-size: 14px; }
-    .keyword-badge { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; padding: 6px 14px; border-radius: 50px; font-size: 13px; font-weight: 500; }
-    .phrase-header { margin-top: 20px; font-size: 15px; font-weight: 600; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 12px; color: var(--text-main); }
-    
-    .social-preview-container { display: flex; gap: 30px; flex-wrap: wrap; align-items: flex-start; }
-    .social-table { flex: 1 1 300px; font-size: 14px; word-break: break-word; }
-    .social-table div { padding: 12px 0; border-bottom: 1px solid #e2e8f0; display: flex; gap: 15px;}
-    .social-table div:last-child { border-bottom: none; }
-    .social-table b { min-width: 100px; color: var(--text-muted); }
-    .social-card-wrapper { flex: 1 1 300px; max-width: 100%; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #f8fafc; }
-    .social-img { width: 100%; height: 250px; object-fit: cover; display: block; background: #cbd5e1; }
-    .social-text { padding: 20px; }
-    .social-text h4 { margin: 0 0 10px 0; font-size: 18px; }
-    .social-text p { margin: 0; font-size: 14px; color: var(--text-muted); }
-    
-    .audit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-    .audit-item { display: flex; align-items: flex-start; gap: 12px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; page-break-inside: avoid; break-inside: avoid; }
-    .audit-icon { font-size: 18px; margin-top: 2px; }
-    .audit-pass { color: var(--success); }
-    .audit-fail { color: var(--danger); }
-    .audit-details h4 { margin: 0 0 4px 0; font-size: 15px; color: var(--text-main); }
-    .audit-details p { margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.4; }
-    
-    .issues-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 25px; }
-    .issue-panel { background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid var(--danger); padding: 20px; border-radius: 8px; page-break-inside: avoid; break-inside: avoid; }
-    .issue-panel h3 { margin: 0 0 15px 0; color: #991b1b; font-size: 16px; margin-bottom: 8px;}
-    .issue-panel ul { margin: 0; padding-left: 20px; }
-    .issue-panel li { color: #991b1b; margin-bottom: 8px; font-size: 14px; }
+    .sitemap-list { max-height: 400px; overflow-y: auto; background: #f8fafc; padding: 15px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-family: monospace; }
+    .sitemap-list div { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0; word-break: break-all; }
+    .sitemap-list div:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
 
     /* Content Specific UI */
     .content-highlight { color: var(--purple); font-weight: 600; }
@@ -140,12 +104,38 @@ def home():
     .pdf-header { display: none; text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
     .pdf-header h2 { color: var(--primary); margin: 0; font-size: 28px; }
     .pdf-header p { color: var(--text-muted); margin: 5px 0 0 0; font-size: 14px; }
+    
+    .serp-preview { background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; max-width: 650px; font-family: arial, sans-serif; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 20px; word-break: break-word; }
+    .serp-url { color: #202124; font-size: 14px; margin-bottom: 4px; }
+    .serp-title { color: #1a0dab; font-size: 20px; line-height: 1.3; margin-bottom: 4px; }
+    .serp-desc { color: #4d5156; font-size: 14px; line-height: 1.58; }
+    .char-check-block { border-top: 1px solid #e2e8f0; padding-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    .char-status { padding: 15px; border-radius: 8px; font-size: 14px;}
+    .char-val { font-size: 20px; font-weight: 700; margin-bottom: 5px;}
+    .char-ok { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
+    .char-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+    
+    .audit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+    .audit-item { display: flex; align-items: flex-start; gap: 12px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
+    .audit-icon { font-size: 18px; margin-top: 2px; }
+    .audit-details h4 { margin: 0 0 4px 0; font-size: 15px; }
+    .audit-details p { margin: 0; font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+    
+    .issues-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 25px; }
+    .issue-panel { background: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid var(--danger); padding: 20px; border-radius: 8px;}
+    .issue-panel h3 { margin: 0 0 15px 0; color: #991b1b; font-size: 16px; margin-bottom: 8px;}
+    .issue-panel ul { margin: 0; padding-left: 20px; }
+    .issue-panel li { color: #991b1b; margin-bottom: 8px; font-size: 14px; }
+    
+    .badge-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .keyword-badge { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; padding: 6px 14px; border-radius: 50px; font-size: 13px; font-weight: 500; }
     </style>
 
     <div class="top-nav-wrapper">
         <div class="nav-container">
             <button class="nav-btn active" id="tab-seo" onclick="switchTab('seo')">SEO Audit</button>
             <button class="nav-btn" id="tab-content" onclick="switchTab('content')">Content Checker</button>
+            <button class="nav-btn" id="tab-sitemap" onclick="switchTab('sitemap')">Sitemap Generator</button>
         </div>
     </div>
 
@@ -168,14 +158,25 @@ def home():
         currentMode = mode;
         document.getElementById('tab-seo').classList.remove('active');
         document.getElementById('tab-content').classList.remove('active');
-        document.getElementById('tab-' + mode).classList.add('active');
+        document.getElementById('tab-sitemap').classList.remove('active', 'orange-grad');
         
+        let titleEl = document.getElementById('app-title');
+        let btnEl = document.getElementById('analyze-btn');
+        btnEl.classList.remove('orange-btn');
+
         if (mode === 'seo') {
-            document.getElementById('app-title').innerHTML = 'SEO Analyzer <span style="color:var(--primary)">Pro</span>';
-            document.getElementById('analyze-btn').innerText = 'Run SEO Audit';
-        } else {
-            document.getElementById('app-title').innerHTML = 'Content <span style="color:var(--purple)">Checker</span>';
-            document.getElementById('analyze-btn').innerText = 'Analyze Content';
+            document.getElementById('tab-seo').classList.add('active');
+            titleEl.innerHTML = 'SEO Analyzer <span style="color:var(--primary)">Pro</span>';
+            btnEl.innerText = 'Run SEO Audit';
+        } else if (mode === 'content') {
+            document.getElementById('tab-content').classList.add('active');
+            titleEl.innerHTML = 'Content <span style="color:var(--purple)">Checker</span>';
+            btnEl.innerText = 'Analyze Content';
+        } else if (mode === 'sitemap') {
+            document.getElementById('tab-sitemap').classList.add('active', 'orange-grad');
+            titleEl.innerHTML = 'XML Sitemap <span style="color:var(--orange)">Generator</span>';
+            btnEl.innerText = 'Generate Sitemap';
+            btnEl.classList.add('orange-btn');
         }
         document.getElementById('out').innerHTML = '';
     }
@@ -221,24 +222,54 @@ def home():
         html2pdf().set(opt).from(element).save().then(() => { header.style.display = 'none'; });
     }
 
+    function downloadSitemapXML(urls, domain) {
+        let xml = '<?xml version="1.0" encoding="UTF-8"?>\\n';
+        xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n';
+        
+        let dateStr = new Date().toISOString().split('T')[0];
+        
+        urls.forEach(u => {
+            xml += '  <url>\\n';
+            xml += '    <loc>' + u + '</loc>\\n';
+            xml += '    <lastmod>' + dateStr + '</lastmod>\\n';
+            xml += '    <changefreq>weekly</changefreq>\\n';
+            xml += '    <priority>' + (u === domain || u === domain + '/' ? '1.0' : '0.8') + '</priority>\\n';
+            xml += '  </url>\\n';
+        });
+        xml += '</urlset>';
+
+        const blob = new Blob([xml], { type: 'application/xml' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        let cleanUrl = domain.replace('https://', '').replace('http://', '').replaceAll('/', '');
+        a.download = 'sitemap_' + cleanUrl + '.xml';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
     async function run(){
       let url = document.getElementById('url').value;
       if(!url) return;
       if(!url.startsWith('http')) url = 'https://' + url;
 
-      let modeText = currentMode === 'seo' ? 'Technical SEO Audit' : 'Deep Content Analysis';
+      let modeText = currentMode === 'seo' ? 'Technical SEO Audit & AI Engine' : 
+                     currentMode === 'content' ? 'Deep Content Analysis' : 'Spider Crawl & Link Extraction';
 
       document.getElementById('out').innerHTML = `
         <div class="card" style="text-align:center; padding: 40px;">
             <div style="font-size: 18px; font-weight: 500; color: var(--text-muted);">
                 <span style="display:inline-block; animation: pulse 1.5s infinite;">Running ${modeText}...</span>
             </div>
+            ${currentMode === 'sitemap' ? '<div style="font-size:13px; color:#94a3b8; margin-top:10px;">Spidering up to 100 pages. This may take up to 15 seconds.</div>' : ''}
         </div>
         <style>@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }</style>
       `;
 
       try {
-          let endpoint = currentMode === 'seo' ? '/analyze' : '/analyze-content';
+          let endpoint = currentMode === 'seo' ? '/analyze' : 
+                         currentMode === 'content' ? '/analyze-content' : '/generate-sitemap';
+                         
           let res = await fetch(endpoint + '?url=' + encodeURIComponent(url));
           let data = await res.json();
 
@@ -249,12 +280,47 @@ def home():
 
           if (currentMode === 'seo') {
               renderSEO(data, url);
-          } else {
+          } else if (currentMode === 'content') {
               renderContent(data, url);
+          } else {
+              renderSitemap(data, url);
           }
       } catch (err) {
           document.getElementById('out').innerHTML = `<div class="card" style="text-align:center; color:red;">Failed to fetch analysis. Check server logs.</div>`;
       }
+    }
+
+    function renderSitemap(data, url) {
+        window.sitemapData = data.urls; // Store globally for the download button
+        window.sitemapDomain = url;
+        
+        document.getElementById('out').innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h2 style="margin: 0; color: var(--text-main); font-size: 1.5rem;">Sitemap Generated</h2>
+                <button class="xml-btn" onclick="downloadSitemapXML(window.sitemapData, window.sitemapDomain)">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Download sitemap.xml
+                </button>
+            </div>
+            
+            <div class="card" style="border-left: 4px solid var(--orange);">
+                <div class="metrics-grid" style="grid-template-columns: 1fr; margin-bottom: 0;">
+                    <div class="metric-box" style="background: #fff7ed; border-color: #ffedd5;">
+                        <div>
+                            <div class="metric-value" style="color: var(--orange);">${data.count}</div>
+                            <div class="metric-name">Internal URLs successfully crawled and formatted for XML mapping.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">URLs Discovered</div>
+                <div class="sitemap-list">
+                    ${data.urls.map(u => `<div>${u}</div>`).join('')}
+                </div>
+            </div>
+        `;
     }
 
     function renderSEO(data, url) {
@@ -651,7 +717,6 @@ def get_base_soup(url):
             pass
     return r, soup, js_rendered
 
-# --- NEW: OpenAI API Helper ---
 def get_openai_suggestion(prompt, api_key):
     if not api_key or api_key == "YOUR_OPENAI_API_KEY_HERE": return None
     try:
@@ -669,6 +734,56 @@ def get_openai_suggestion(prompt, api_key):
         return f"AI Generation Failed: {str(e)}"
     return None
 
+@app.get("/generate-sitemap")
+def generate_sitemap(url: str):
+    try:
+        if not url.startswith("http"):
+            url = "https://" + url
+            
+        parsed_base = urlparse(url)
+        base_domain = parsed_base.netloc
+        
+        visited = set()
+        to_visit = set([url])
+        
+        max_pages = 100 
+        timeout = 15 
+        start_time = time.time()
+        
+        headers = {"User-Agent": "Mozilla/5.0"}
+        ignore_exts = ('.jpg', '.jpeg', '.png', '.gif', '.pdf', '.css', '.js', '.svg', '.zip', '.mp4')
+        
+        while to_visit and len(visited) < max_pages and (time.time() - start_time) < timeout:
+            current_url = to_visit.pop()
+            current_url = current_url.split('#')[0] 
+            
+            if current_url in visited: continue
+            visited.add(current_url)
+            
+            try:
+                res = requests.get(current_url, headers=headers, timeout=5)
+                if res.status_code != 200 or 'text/html' not in res.headers.get('Content-Type', ''):
+                    continue
+                    
+                soup = BeautifulSoup(res.text, "html.parser")
+                for a in soup.find_all("a", href=True):
+                    href = a['href']
+                    full_url = urljoin(current_url, href).split('#')[0]
+                    
+                    if not full_url.startswith("http"): continue
+                    
+                    parsed_full = urlparse(full_url)
+                    
+                    if parsed_full.netloc == base_domain and not full_url.lower().endswith(ignore_exts):
+                        if full_url not in visited:
+                            to_visit.add(full_url)
+            except:
+                continue
+                
+        return {"urls": list(visited), "count": len(visited)}
+    except Exception as e:
+        return {"error": str(e)}
+
 @app.get("/analyze")
 def analyze(url: str):
     try:
@@ -680,7 +795,6 @@ def analyze(url: str):
         start_time = time.time()
         load_time = round(time.time() - start_time, 2)
 
-        # YOUR API KEYS ARE SECURELY PULLED FROM ENVIRONMENT VARIABLES
         google_api_key = os.getenv("GOOGLE_API_KEY", "YOUR_GOOGLE_API_KEY_HERE")
         openai_api_key = os.getenv("OPENAI_API_KEY", "YOUR_OPENAI_API_KEY_HERE")
 
@@ -953,7 +1067,6 @@ def analyze(url: str):
         on_page_score = max(0, on_page_score)
         technical_score = max(0, technical_score)
 
-        # Trigger AI Generation if needed
         ai_suggestion = None
         if needs_rewrite and openai_api_key != "YOUR_OPENAI_API_KEY_HERE":
             kw_list = [k['phrase'] for k in top_keywords['top_1'][:5]]
@@ -1008,7 +1121,6 @@ def analyze_content(url: str):
     try:
         r, soup, js_rendered = get_base_soup(url)
         
-        # YOUR API KEYS ARE SECURELY PULLED FROM ENVIRONMENT VARIABLES
         openai_api_key = os.getenv("OPENAI_API_KEY", "YOUR_OPENAI_API_KEY_HERE")
 
         text_clean = soup.get_text(separator="\n")
@@ -1107,7 +1219,6 @@ def analyze_content(url: str):
         tri_counts = Counter(tri_grams)
         repetition_score = round((sum(c for p, c in tri_counts.items() if c > 3) / max(len(tri_grams), 1)) * 100, 1)
 
-        # Trigger AI Generation for Content Strategy
         ai_suggestion = None
         if openai_api_key != "YOUR_OPENAI_API_KEY_HERE":
             kw_list = [k['phrase'] for k in top_1[:5]]
