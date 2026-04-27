@@ -258,7 +258,7 @@ def home():
                     <div class="tool-card" onclick="switchTab('llms')">
                         <div class="tool-icon">🧠</div>
                         <h3>llms.txt Generator</h3>
-                        <p>Create standard AI guidelines to control how ChatGPT, Claude, and LLM bots read and interpret your website's data.</p>
+                        <p>Prepare your site for Artificial Engine Optimization (AEO). Auto-fetch metadata and generate an llms.txt file to instruct AI models.</p>
                         <div class="tool-action">Open Tool →</div>
                     </div>
                 </div>
@@ -266,62 +266,100 @@ def home():
         `;
     }
 
-    // --- NEW: llms.txt Generator Logic ---
+    // --- UPDATED: llms.txt Generator Logic with Auto-Fetch ---
     function renderLlmsGenerator() {
         document.getElementById('out').innerHTML = `
+            <div class="card" style="background: #fff7ed; border-color: #ffedd5; padding: 20px; display: flex; gap: 15px; align-items: center; margin-bottom: 25px;">
+                <input type="text" id="llms-auto-url" class="generator-input" style="flex-grow: 1; border-color: #fdba74;" placeholder="Enter website URL to auto-fetch data (e.g. https://example.com)">
+                <button onclick="autoFetchLlms()" id="llms-fetch-btn" style="background: var(--orange); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;">Auto-Fetch Data ✨</button>
+            </div>
+
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;">
                 <div class="card" style="margin-bottom: 0;">
-                    <div class="card-title">LLM File Configuration</div>
+                    <div class="card-title">llms.txt Configuration</div>
                     
                     <div style="margin-bottom: 20px;">
-                        <label class="generator-label">Website Name</label>
+                        <label class="generator-label">Brand Name</label>
                         <input type="text" id="llms-name" onkeyup="updateLlmsPreview()" class="generator-input" placeholder="e.g. SEO Analyzer Pro">
                     </div>
                     
                     <div style="margin-bottom: 20px;">
-                        <label class="generator-label">Brief Description</label>
-                        <input type="text" id="llms-desc" onkeyup="updateLlmsPreview()" class="generator-input" placeholder="What is this site about?">
+                        <label class="generator-label">Tagline (Shown as Blockquote)</label>
+                        <input type="text" id="llms-tagline" onkeyup="updateLlmsPreview()" class="generator-input" placeholder="A brief catchphrase or mission statement.">
                     </div>
                     
                     <div style="margin-bottom: 20px;">
-                        <label class="generator-label">AI System Prompt / Guidelines</label>
-                        <textarea id="llms-instructions" onkeyup="updateLlmsPreview()" rows="4" class="generator-input" style="font-family: 'Poppins', sans-serif; resize: vertical;" placeholder="Tell the AI how to behave (e.g. 'Always summarize products with a professional tone.')"></textarea>
+                        <label class="generator-label">Description (For AI Context)</label>
+                        <textarea id="llms-summary" onkeyup="updateLlmsPreview()" rows="4" class="generator-input" style="resize: vertical;" placeholder="A comprehensive description of what your website provides..."></textarea>
                     </div>
-
+                    
                     <div style="margin-bottom: 10px;">
-                        <label class="generator-label">Important Context Links (One per line)</label>
-                        <textarea id="llms-links" onkeyup="updateLlmsPreview()" rows="3" class="generator-input" style="font-family: monospace; resize: vertical;" placeholder="https://example.com/docs\\nhttps://example.com/api"></textarea>
+                        <label class="generator-label">Sections & Key URLs (Markdown Format)</label>
+                        <textarea id="llms-urls" onkeyup="updateLlmsPreview()" rows="8" class="generator-input" style="font-family: monospace; resize: vertical;" placeholder="## Core Services\\n- [Service 1](https://...): Description\\n\\n## About Us\\n- [Team](https://...): Meet the team"></textarea>
                     </div>
                 </div>
                 
                 <div class="card" style="margin-bottom: 0; background: #1e293b; border-color: #0f172a; display: flex; flex-direction: column;">
                     <div class="card-title" style="color: white; border-bottom: 1px solid #334155; padding-bottom: 15px; margin-bottom: 20px; justify-content: space-between;">
                         Live File Preview
-                        <button onclick="downloadLlmsTxt()" style="background: var(--orange); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.3s;">Download llms.txt</button>
+                        <button onclick="downloadLlmsTxt()" style="background: var(--orange); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.3s;">Download .txt</button>
                     </div>
-                    <pre id="llms-preview" style="font-family: 'Courier New', Courier, monospace; font-size: 14px; white-space: pre-wrap; color: #a5b4fc; margin: 0; flex-grow: 1;"></pre>
+                    <pre id="llms-preview" style="font-family: 'Courier New', Courier, monospace; font-size: 14px; white-space: pre-wrap; color: #a5b4fc; margin: 0; flex-grow: 1; overflow-y: auto; max-height: 600px;"></pre>
                 </div>
             </div>
         `;
         updateLlmsPreview();
     }
 
+    window.autoFetchLlms = async function() {
+        let url = document.getElementById('llms-auto-url').value;
+        if(!url) return;
+        
+        let btn = document.getElementById('llms-fetch-btn');
+        btn.innerText = 'Scanning...';
+        btn.style.opacity = '0.7';
+        btn.disabled = true;
+        
+        try {
+            let res = await fetch('/auto-llms?url=' + encodeURIComponent(url));
+            let data = await res.json();
+            
+            if(!data.error) {
+                document.getElementById('llms-name').value = data.brand || '';
+                document.getElementById('llms-tagline').value = data.tagline || '';
+                document.getElementById('llms-summary').value = data.description || '';
+                document.getElementById('llms-urls').value = data.markdown_links || '';
+                updateLlmsPreview();
+            } else {
+                alert('Failed to fetch data: ' + data.error);
+            }
+        } catch(e) {
+            alert('Network error while fetching data.');
+        }
+        
+        btn.innerText = 'Auto-Fetch Data ✨';
+        btn.style.opacity = '1';
+        btn.disabled = false;
+    }
+
     window.updateLlmsPreview = function() {
-        let name = document.getElementById('llms-name').value || 'My Website';
-        let desc = document.getElementById('llms-desc').value || 'A brief description of this website and its content.';
-        let instructions = document.getElementById('llms-instructions').value || 'When summarizing or answering questions about this website, maintain a professional and accurate tone. Do not hallucinate features.';
-        let linksRaw = document.getElementById('llms-links').value;
+        let name = document.getElementById('llms-name').value.trim() || 'Website Name';
+        let tagline = document.getElementById('llms-tagline').value.trim();
+        let desc = document.getElementById('llms-summary').value.trim();
+        let urls = document.getElementById('llms-urls').value.trim();
 
         let out = "# " + name + "\\n\\n";
-        out += "> " + desc + "\\n\\n";
-        out += "## System Prompt & AI Guidelines\\n" + instructions + "\\n\\n";
         
-        let lines = linksRaw.split('\\n').filter(l => l.trim() !== '');
-        if(lines.length > 0) {
-            out += "## Important Context Links\\n";
-            lines.forEach(l => {
-                out += "- " + l.trim() + "\\n";
-            });
+        if (tagline) {
+            out += "> " + tagline + "\\n\\n";
+        }
+        
+        if (desc) {
+            out += desc + "\\n\\n";
+        }
+
+        if (urls) {
+            out += urls + "\\n";
         }
 
         document.getElementById('llms-preview').innerText = out;
@@ -329,7 +367,7 @@ def home():
     };
 
     window.downloadLlmsTxt = function() {
-        const blob = new Blob([window.currentLlmsTxt], { type: 'text/markdown' });
+        const blob = new Blob([window.currentLlmsTxt], { type: 'text/plain' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = 'llms.txt';
@@ -1169,6 +1207,73 @@ def get_openai_suggestion(prompt, api_key):
     except Exception as e:
         return f"AI Generation Failed: {str(e)}"
     return None
+
+# --- NEW: LLMs.txt Auto-Fetch API Endpoint ---
+@app.get("/auto-llms")
+def auto_llms(url: str):
+    try:
+        if not url.startswith("http"):
+            url = "https://" + url
+            
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"}
+        res = requests.get(url, headers=headers, timeout=10)
+        soup = BeautifulSoup(res.text, "html.parser")
+        
+        # Extract Brand
+        title = soup.title.string.strip() if soup.title and soup.title.string else urlparse(url).netloc
+        brand_name = title.split('|')[0].split('-')[0].strip()
+        
+        # Extract Description
+        desc_tag = soup.find("meta", attrs={"name": "description"})
+        desc = desc_tag["content"].strip() if desc_tag and desc_tag.get("content") else ""
+        
+        tagline = desc[:80] + "..." if len(desc) > 80 else desc
+        
+        # Extract and group links
+        base_domain = urlparse(url).netloc
+        seen_urls = set()
+        links_data = []
+        
+        for a in soup.find_all("a", href=True):
+            href = urljoin(url, a['href']).split('#')[0]
+            text = a.get_text(strip=True)
+            if not text or len(text) < 3: continue
+            
+            if urlparse(href).netloc == base_domain and href not in seen_urls:
+                seen_urls.add(href)
+                links_data.append({"url": href, "text": text})
+                if len(links_data) > 30: break
+                
+        categories = {"Core Services": [], "About Us & Contact": [], "Blog & Resources": [], "Legal": []}
+        for link in links_data:
+            path = urlparse(link['url']).path.lower()
+            if any(x in path for x in ['about', 'contact', 'team', 'careers']):
+                categories["About Us & Contact"].append(link)
+            elif any(x in path for x in ['blog', 'article', 'news', 'faq', 'guide']):
+                categories["Blog & Resources"].append(link)
+            elif any(x in path for x in ['privacy', 'terms', 'legal']):
+                categories["Legal"].append(link)
+            elif path == "/" or path == "":
+                continue
+            else:
+                categories["Core Services"].append(link)
+                
+        markdown_links = ""
+        for cat, items in categories.items():
+            if items:
+                markdown_links += f"## {cat}\\n"
+                for item in items[:8]: 
+                    markdown_links += f"- [{item['text']}]({item['url']}): Learn more about {item['text'].lower()}.\\n"
+                markdown_links += "\\n"
+                
+        return {
+            "brand": brand_name,
+            "tagline": tagline,
+            "description": desc,
+            "markdown_links": markdown_links.strip()
+        }
+    except Exception as e:
+        return {"error": str(e)}
 
 @app.get("/generate-sitemap")
 def generate_sitemap(url: str):
