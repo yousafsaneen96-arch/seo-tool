@@ -16,6 +16,7 @@ app = FastAPI()
 def home():
     return """
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
@@ -38,7 +39,6 @@ def home():
     img { max-width: 100%; height: auto; }
     .container { max-width: 1100px; margin: 0 auto 50px auto; padding: 0 20px; }
     
-    /* Premium Floating Nav */
     .top-nav-wrapper { position: sticky; top: 20px; z-index: 100; display: flex; justify-content: center; width: 100%; margin-bottom: 40px; pointer-events: none; }
     .nav-container { pointer-events: auto; display: inline-flex; gap: 5px; padding: 6px; background: linear-gradient(145deg, rgba(255, 255, 255, 0.85), rgba(241, 245, 249, 0.75)); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 50px; border: 1px solid rgba(255,255,255,1); box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(226, 232, 240, 0.4); }
     .nav-btn { padding: 12px 30px; border-radius: 50px; font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--text-muted); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
@@ -55,18 +55,26 @@ def home():
     
     button.primary-btn { padding: 16px 32px; background: linear-gradient(135deg, var(--primary), var(--secondary)); background-size: 200% auto; border: none; border-radius: 50px; color: white; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3); transition: all 0.4s ease; }
     button.primary-btn:hover { background-position: right center; transform: translateY(-2px); }
-    
     button.primary-btn.orange-btn { background: linear-gradient(135deg, var(--orange), #fb923c); box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.3); }
-    
     button.pdf-btn { padding: 10px 24px; background: #1e293b; border: none; border-radius: 8px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.3s; display: flex; align-items: center; gap: 8px; }
     button.pdf-btn:hover { background: #334155; }
     
-    button.xml-btn { padding: 10px 24px; background: var(--orange); border: none; border-radius: 8px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.3s; display: flex; align-items: center; gap: 8px; }
+    button.xml-btn { padding: 10px 20px; background: var(--orange); border: none; border-radius: 8px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.3s; display: flex; align-items: center; gap: 8px; }
     button.xml-btn:hover { background: #ea580c; }
+    button.xml-btn-outline { padding: 10px 20px; background: white; border: 2px solid var(--orange); border-radius: 8px; color: var(--orange); font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.3s; }
+    button.xml-btn-outline:hover { background: #fff7ed; }
 
     .card { background: var(--card-bg); border-radius: 20px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03); transition: transform 0.3s ease, box-shadow 0.3s ease; border: 1px solid #f1f5f9; overflow: hidden; page-break-inside: avoid; break-inside: avoid; }
-    .card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
     .card-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 20px; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
+
+    /* Yoast-Style Sitemap Table */
+    .yoast-table-wrapper { background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .yoast-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+    .yoast-table th { background: #3b82f6; color: white; padding: 12px 20px; font-weight: 600; }
+    .yoast-table td { padding: 12px 20px; border-bottom: 1px solid #e2e8f0; color: #3b82f6; }
+    .yoast-table td:last-child { color: #64748b; }
+    .yoast-table tr:last-child td { border-bottom: none; }
+    .yoast-table tr:hover td { background: #f8fafc; }
 
     .scores-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 25px; margin-bottom: 25px; }
     .score-card { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; page-break-inside: avoid; break-inside: avoid; }
@@ -89,10 +97,6 @@ def home():
     .accordion-content { padding: 15px 20px; border-top: 1px solid #e2e8f0; max-height: 300px; overflow-y: auto; background: white; font-size: 13px; color: var(--text-muted); word-break: break-all; }
     .url-list-item { padding: 6px 0; border-bottom: 1px solid #f1f5f9; }
     .url-list-item:last-child { border-bottom: none; }
-
-    .sitemap-list { max-height: 400px; overflow-y: auto; background: #f8fafc; padding: 15px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 13px; font-family: monospace; }
-    .sitemap-list div { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0; word-break: break-all; }
-    .sitemap-list div:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
 
     .content-highlight { color: var(--purple); font-weight: 600; }
     .ai-placeholder { background: #fdf4ff; border: 1px solid #f0abfc; padding: 20px; border-radius: 8px; color: #701a75; font-size: 14px; line-height: 1.6; }
@@ -211,7 +215,7 @@ def home():
                     <div class="tool-card" onclick="switchTab('sitemap')">
                         <div class="tool-icon">🗺️</div>
                         <h3>XML Sitemap Generator</h3>
-                        <p>Deep hybrid crawl tool. Intercepts hidden CMS databases (Yoast/RankMath) and actively spiders the HTML to generate a complete, 100% compliant XML sitemap.</p>
+                        <p>Deep hybrid crawl tool. Categorizes URLs into Posts, Pages, and Categories to generate a perfectly structured, Yoast-style XML Sitemap Index.</p>
                         <div class="tool-action">Open Tool →</div>
                     </div>
                 </div>
@@ -260,22 +264,72 @@ def home():
         html2pdf().set(opt).from(element).save().then(() => { header.style.display = 'none'; });
     }
 
-    function downloadSitemapXML(urls, domain) {
-        let xml = '<?xml version="1.0" encoding="UTF-8"?>\\n';
-        xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n';
-        
-        let dateStr = new Date().toISOString().split('T')[0];
-        
-        urls.forEach(u => {
-            xml += '  <url>\\n';
-            xml += '    <loc>' + u + '</loc>\\n';
-            xml += '    <lastmod>' + dateStr + '</lastmod>\\n';
-            xml += '    <changefreq>weekly</changefreq>\\n';
-            xml += '    <priority>' + (u === domain || u === domain + '/' ? '1.0' : '0.8') + '</priority>\\n';
-            xml += '  </url>\\n';
-        });
-        xml += '</urlset>';
+    // NEW: Yoast-style XSLT Stylesheet string
+    const xsltContent = `<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:sitemap="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <xsl:template match="/">
+    <html>
+      <head>
+        <title>XML Sitemap</title>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #333; margin: 40px; }
+          h1 { color: #1e293b; margin-bottom: 5px; }
+          p { color: #64748b; font-size: 14px; margin-top: 0; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+          th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+          th { background-color: #3b82f6; color: white; font-weight: 600; }
+          tr:hover { background-color: #f8fafc; }
+          a { color: #3b82f6; text-decoration: none; }
+          a:hover { text-decoration: underline; }
+          td:last-child { color: #64748b; }
+        </style>
+      </head>
+      <body>
+        <h1>XML Sitemap</h1>
+        <p>Generated by <b>SEO Analyzer Pro</b>, this is an XML Sitemap, meant for consumption by search engines.</p>
+        <table>
+          <tr><th>URL / Sitemap</th><th>Last Modified</th></tr>
+          <xsl:for-each select="sitemap:sitemapindex/sitemap:sitemap | sitemap:urlset/sitemap:url">
+            <tr>
+              <td><a href="{sitemap:loc}"><xsl:value-of select="sitemap:loc"/></a></td>
+              <td><xsl:value-of select="sitemap:lastmod"/></td>
+            </tr>
+          </xsl:for-each>
+        </table>
+      </body>
+    </html>
+  </xsl:template>
+</xsl:stylesheet>`;
 
+    // Creates a single XML file string
+    function createXMLString(urls, type = "urlset", baseDomain = "") {
+        let dateStr = new Date().toISOString().split('T')[0] + "T12:00:00+00:00";
+        let xml = '<?xml version="1.0" encoding="UTF-8"?>\\n';
+        xml += '<?xml-stylesheet type="text/xsl" href="main-sitemap.xsl"?>\\n';
+        
+        if (type === "sitemapindex") {
+            xml += '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n';
+            urls.forEach(u => {
+                xml += '  <sitemap>\\n    <loc>' + u + '</loc>\\n    <lastmod>' + dateStr + '</lastmod>\\n  </sitemap>\\n';
+            });
+            xml += '</sitemapindex>';
+        } else {
+            xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n';
+            urls.forEach(u => {
+                let priority = (u === baseDomain || u === baseDomain + '/') ? '1.0' : '0.8';
+                xml += '  <url>\\n    <loc>' + u + '</loc>\\n    <lastmod>' + dateStr + '</lastmod>\\n    <priority>' + priority + '</priority>\\n  </url>\\n';
+            });
+            xml += '</urlset>';
+        }
+        return xml;
+    }
+
+    // Downloads a flat sitemap.xml (All URLs in one file)
+    function downloadFlatSitemap() {
+        let allUrls = [];
+        Object.values(window.sitemapData).forEach(arr => { allUrls = allUrls.concat(arr); });
+        
+        let xml = createXMLString(allUrls, "urlset", window.sitemapDomain);
         const blob = new Blob([xml], { type: 'application/xml' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
@@ -283,6 +337,37 @@ def home():
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
+    }
+
+    // Downloads a Yoast-style ZIP package
+    function downloadStructuredSitemapZip() {
+        var zip = new JSZip();
+        zip.file("main-sitemap.xsl", xsltContent);
+        
+        let indexLinks = [];
+        let baseObj = new URL(window.sitemapDomain);
+        let baseUrl = baseObj.origin;
+
+        Object.keys(window.sitemapData).forEach(key => {
+            let urls = window.sitemapData[key];
+            if (urls.length > 0) {
+                let filename = key + "-sitemap.xml";
+                indexLinks.push(baseUrl + "/" + filename);
+                zip.file(filename, createXMLString(urls, "urlset", baseUrl));
+            }
+        });
+
+        // The main index file MUST be named sitemap.xml
+        zip.file("sitemap.xml", createXMLString(indexLinks, "sitemapindex"));
+
+        zip.generateAsync({type:"blob"}).then(function(content) {
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(content);
+            a.download = "sitemap_package.zip";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
     }
 
     async function run(){
@@ -298,7 +383,7 @@ def home():
             <div style="font-size: 18px; font-weight: 500; color: var(--text-muted);">
                 <span style="display:inline-block; animation: pulse 1.5s infinite;">Running ${modeText}...</span>
             </div>
-            ${currentMode === 'sitemap' ? '<div style="font-size:13px; color:#94a3b8; margin-top:10px;">Checking CMS databases and actively spidering the site. This may take up to 45 seconds.</div>' : ''}
+            ${currentMode === 'sitemap' ? '<div style="font-size:13px; color:#94a3b8; margin-top:10px;">Categorizing CMS databases and actively spidering the site. This may take up to 45 seconds.</div>' : ''}
         </div>
         <style>@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }</style>
       `;
@@ -328,33 +413,36 @@ def home():
     }
 
     function renderSitemap(data, url) {
-        window.sitemapData = data.urls; 
+        window.sitemapData = data.sitemaps; 
         window.sitemapDomain = url;
         
+        let dateStr = new Date().toISOString().split('T')[0] + " 12:00 +00:00";
+        
+        let tableRows = Object.keys(data.sitemaps).map(key => {
+            if(data.sitemaps[key].length === 0) return '';
+            let sitemapUrl = new URL(url).origin + "/" + key + "-sitemap.xml";
+            return `<tr><td>${sitemapUrl} <b>(${data.sitemaps[key].length} URLs)</b></td><td>${dateStr}</td></tr>`;
+        }).join('');
+
         document.getElementById('out').innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
                 <h2 style="margin: 0; color: var(--text-main); font-size: 1.5rem;">Sitemap Generated</h2>
-                <button class="xml-btn" onclick="downloadSitemapXML(window.sitemapData, window.sitemapDomain)">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    Download sitemap.xml
-                </button>
-            </div>
-            
-            <div class="card" style="border-left: 4px solid var(--orange);">
-                <div class="metrics-grid" style="grid-template-columns: 1fr; margin-bottom: 0;">
-                    <div class="metric-box" style="background: #fff7ed; border-color: #ffedd5;">
-                        <div>
-                            <div class="metric-value" style="color: var(--orange);">${data.count}</div>
-                            <div class="metric-name">Total URLs successfully extracted and mapped via Hybrid crawl.</div>
-                        </div>
-                    </div>
+                <div style="display:flex; gap:10px;">
+                    <button class="xml-btn-outline" onclick="downloadFlatSitemap()">Download sitemap.xml (Flat)</button>
+                    <button class="xml-btn" onclick="downloadStructuredSitemapZip()">Download Yoast ZIP Package</button>
                 </div>
             </div>
             
-            <div class="card">
-                <div class="card-title">URLs Discovered</div>
-                <div class="sitemap-list">
-                    ${data.urls.map(u => `<div>${u}</div>`).join('')}
+            <div class="card" style="padding: 0; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <div class="yoast-table-wrapper">
+                    <div style="padding: 20px; background: white; border-bottom: 1px solid #e2e8f0;">
+                        <h2 style="margin: 0 0 10px 0; color: #1e293b; font-size: 24px;">XML Sitemap Index</h2>
+                        <p style="margin: 0; color: #64748b; font-size: 14px;">Generated by <b>SEO Analyzer Pro</b>. This XML Sitemap Index file contains <b>${data.count}</b> total URLs divided across categorized sitemaps.</p>
+                    </div>
+                    <table class="yoast-table">
+                        <tr><th>Sitemap Name</th><th>Last Modified</th></tr>
+                        ${tableRows}
+                    </table>
                 </div>
             </div>
         `;
@@ -804,7 +892,7 @@ def generate_sitemap(url: str):
             except:
                 pass
 
-        max_pages = 1000 
+        max_pages = 500 
         timeout = 45 
         start_time = time.time()
         
@@ -844,7 +932,23 @@ def generate_sitemap(url: str):
                 continue
                 
         final_urls = sorted(list(visited))
-        return {"urls": final_urls, "count": len(final_urls)}
+        
+        # --- URL CATEGORIZATION LOGIC ---
+        categorized = {"page": [], "post": [], "category": [], "other": []}
+        for u in final_urls:
+            path = urlparse(u).path
+            parts = [p for p in path.split('/') if p.strip()]
+            
+            if not parts:
+                categorized["page"].append(u)
+            elif any(x in parts for x in ['category', 'tag', 'author']):
+                categorized["category"].append(u)
+            elif len(parts) >= 2 or any(re.match(r'\d{4}', p) for p in parts):
+                categorized["post"].append(u)
+            else:
+                categorized["page"].append(u)
+                
+        return {"sitemaps": categorized, "count": len(final_urls)}
     except Exception as e:
         return {"error": str(e)}
 
