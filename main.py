@@ -217,6 +217,13 @@ def home():
             document.getElementById('out').innerHTML = '';
             renderRobotsGenerator();
         }
+        else if (mode === 'webp') {
+            document.getElementById('tab-tools').classList.add('active', 'orange-grad');
+            titleEl.innerHTML = 'Image to WebP <span style="color:var(--orange)">Converter</span>';
+            searchCont.style.display = 'none'; 
+            document.getElementById('out').innerHTML = '';
+            renderWebpConverter();
+        }
     }
 
     function renderToolsDirectory() {
@@ -235,12 +242,131 @@ def home():
                         <p>Instantly generate standard or complex robots.txt rules to securely control how search engines crawl and index your site files.</p>
                         <div class="tool-action">Open Tool →</div>
                     </div>
+                    <div class="tool-card" onclick="switchTab('webp')">
+                        <div class="tool-icon">🖼️</div>
+                        <h3>Image to WebP Converter</h3>
+                        <p>Instantly convert JPGs and PNGs to next-gen WebP format for faster page loading, with built-in SEO-friendly file renaming.</p>
+                        <div class="tool-action">Open Tool →</div>
+                    </div>
                 </div>
             </div>
         `;
     }
 
-    // --- NEW: Robots.txt Generator Logic ---
+    // --- NEW: WebP Converter Logic ---
+    function renderWebpConverter() {
+        document.getElementById('out').innerHTML = `
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;">
+                <div class="card" style="margin-bottom: 0;">
+                    <div class="card-title">Conversion Settings</div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label class="generator-label">Upload Image (JPG, PNG, etc.)</label>
+                        <input type="file" id="webp-file" accept="image/*" onchange="handleImageUpload(event)" class="generator-input" style="background: #f8fafc; padding: 9px 15px;">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label class="generator-label">New File Name (SEO Friendly)</label>
+                        <input type="text" id="webp-filename" onkeyup="updateWebpPreview()" class="generator-input" placeholder="e.g. best-plumber-dubai">
+                        <p style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">We will automatically format it and append .webp</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label class="generator-label">Compression Quality: <span id="quality-val" style="color:var(--orange);">80</span>%</label>
+                        <input type="range" id="webp-quality" min="1" max="100" value="80" oninput="document.getElementById('quality-val').innerText=this.value; updateWebpPreview()" style="width: 100%; accent-color: var(--orange);">
+                        <p style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">80% is recommended for the best balance of quality and loading speed.</p>
+                    </div>
+                </div>
+                
+                <div class="card" style="margin-bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                    <div class="card-title" style="width: 100%; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px; align-items: center;">
+                        Live Preview
+                        <button id="download-webp-btn" onclick="downloadWebp()" style="background: var(--text-muted); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: not-allowed; transition: background 0.3s;" disabled>Download .webp</button>
+                    </div>
+                    <div id="webp-preview-container" style="width: 100%; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; overflow: hidden; padding: 10px; box-sizing: border-box;">
+                        <span id="webp-placeholder" style="color: #94a3b8; font-size: 14px;">Upload an image to see preview</span>
+                        <img id="webp-preview-img" style="max-width: 100%; max-height: 250px; display: none; border-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    </div>
+                    <div id="webp-stats" style="margin-top: 15px; font-size: 14px; color: var(--text-main); display: none; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 10px 20px; border-radius: 8px; width: 100%; box-sizing: border-box;">
+                        Estimated New Size: <b id="webp-size" style="color: #065f46; font-size: 16px;">0 KB</b>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    window.handleImageUpload = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Auto-fill filename input with the original name (minus extension) and sanitize it
+        let rawName = file.name.replace(/\\.[^/.]+$/, "");
+        rawName = rawName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+        document.getElementById('webp-filename').value = rawName;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                window.currentImageToConvert = img;
+                document.getElementById('webp-placeholder').style.display = 'none';
+                document.getElementById('webp-preview-img').style.display = 'block';
+                document.getElementById('webp-stats').style.display = 'block';
+                
+                let btn = document.getElementById('download-webp-btn');
+                btn.disabled = false;
+                btn.style.background = 'var(--orange)';
+                btn.style.cursor = 'pointer';
+                
+                updateWebpPreview();
+            }
+            img.src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+    };
+
+    window.updateWebpPreview = function() {
+        if (!window.currentImageToConvert) return;
+        const img = window.currentImageToConvert;
+        const quality = document.getElementById('webp-quality').value / 100;
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        
+        const webpDataUrl = canvas.toDataURL('image/webp', quality);
+        document.getElementById('webp-preview-img').src = webpDataUrl;
+        
+        // Base64 size estimation
+        const base64str = webpDataUrl.split(',')[1];
+        const decoded = atob(base64str);
+        const sizeKB = (decoded.length / 1024).toFixed(2);
+        
+        document.getElementById('webp-size').innerText = sizeKB + " KB";
+        window.currentWebpDataUrl = webpDataUrl;
+    };
+
+    window.downloadWebp = function() {
+        if (!window.currentWebpDataUrl) return;
+        
+        let filename = document.getElementById('webp-filename').value.trim();
+        if (!filename) filename = "seo-optimized-image";
+        
+        // Final sanitization to ensure SEO friendly URL format
+        filename = filename.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+        filename += ".webp";
+        
+        const a = document.createElement('a');
+        a.href = window.currentWebpDataUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    };
+
+    // --- Robots.txt Generator Logic ---
     function renderRobotsGenerator() {
         document.getElementById('out').innerHTML = `
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;">
