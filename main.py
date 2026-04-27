@@ -67,7 +67,6 @@ def home():
     .card { background: var(--card-bg); border-radius: 20px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03); transition: transform 0.3s ease, box-shadow 0.3s ease; border: 1px solid #f1f5f9; overflow: hidden; page-break-inside: avoid; break-inside: avoid; }
     .card-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 20px; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
 
-    /* Structured Sitemap Table */
     .sitemap-table-wrapper { background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
     .sitemap-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
     .sitemap-table th { background: #3b82f6; color: white; padding: 12px 20px; font-weight: 600; }
@@ -140,6 +139,11 @@ def home():
     .tool-card h3 { margin: 0 0 10px 0; color: var(--text-main); font-size: 18px; }
     .tool-card p { margin: 0 0 20px 0; font-size: 13px; color: var(--text-muted); line-height: 1.5; flex-grow: 1; }
     .tool-action { font-weight: 600; font-size: 14px; color: var(--orange); display: flex; align-items: center; gap: 5px; }
+    
+    /* Generators Input Forms */
+    .generator-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text-main); }
+    .generator-input { width: 100%; padding: 12px 15px; border-radius: 8px; border: 1px solid #e2e8f0; font-family: 'Poppins', sans-serif; font-size: 14px; box-sizing: border-box; outline: none; transition: border-color 0.3s; }
+    .generator-input:focus { border-color: var(--orange); }
     </style>
 
     <div class="top-nav-wrapper">
@@ -206,6 +210,13 @@ def home():
             searchCont.style.display = 'flex';
             document.getElementById('out').innerHTML = '';
         }
+        else if (mode === 'robots') {
+            document.getElementById('tab-tools').classList.add('active', 'orange-grad');
+            titleEl.innerHTML = 'Robots.txt <span style="color:var(--orange)">Generator</span>';
+            searchCont.style.display = 'none'; 
+            document.getElementById('out').innerHTML = '';
+            renderRobotsGenerator();
+        }
     }
 
     function renderToolsDirectory() {
@@ -218,10 +229,105 @@ def home():
                         <p>Deep hybrid crawl tool. Categorizes URLs into Posts, Pages, and Categories to generate a perfectly structured XML Sitemap Index.</p>
                         <div class="tool-action">Open Tool →</div>
                     </div>
+                    <div class="tool-card" onclick="switchTab('robots')">
+                        <div class="tool-icon">🤖</div>
+                        <h3>Robots.txt Generator</h3>
+                        <p>Instantly generate standard or complex robots.txt rules to securely control how search engines crawl and index your site files.</p>
+                        <div class="tool-action">Open Tool →</div>
+                    </div>
                 </div>
             </div>
         `;
     }
+
+    // --- NEW: Robots.txt Generator Logic ---
+    function renderRobotsGenerator() {
+        document.getElementById('out').innerHTML = `
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;">
+                <div class="card" style="margin-bottom: 0;">
+                    <div class="card-title">Rule Configuration</div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label class="generator-label">Default Rule for All Robots (*)</label>
+                        <select id="rob-default" onchange="updateRobotsPreview()" class="generator-input" style="background: white; cursor: pointer;">
+                            <option value="allow">Allow All Crawling (Recommended)</option>
+                            <option value="disallow">Disallow All Crawling</option>
+                        </select>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label class="generator-label">Crawl-Delay (Seconds)</label>
+                        <input type="number" id="rob-delay" onkeyup="updateRobotsPreview()" onchange="updateRobotsPreview()" class="generator-input" placeholder="e.g. 5 (Leave blank for none)">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label class="generator-label">XML Sitemap URL</label>
+                        <input type="text" id="rob-sitemap" onkeyup="updateRobotsPreview()" onchange="updateRobotsPreview()" class="generator-input" placeholder="https://example.com/sitemap.xml">
+                    </div>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <label class="generator-label">Disallowed Directories (One per line)</label>
+                        <textarea id="rob-disallow" onkeyup="updateRobotsPreview()" rows="4" class="generator-input" style="font-family: monospace; resize: vertical;" placeholder="/wp-admin/\\n/private-files/\\n/cgi-bin/"></textarea>
+                        <p style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">These folders will be blocked from Google Search.</p>
+                    </div>
+                </div>
+                
+                <div class="card" style="margin-bottom: 0; background: #1e293b; border-color: #0f172a; display: flex; flex-direction: column;">
+                    <div class="card-title" style="color: white; border-bottom: 1px solid #334155; padding-bottom: 15px; margin-bottom: 20px; justify-content: space-between;">
+                        Live File Preview
+                        <button onclick="downloadRobotsTxt()" style="background: var(--orange); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.3s;">Download .txt</button>
+                    </div>
+                    <pre id="rob-preview" style="font-family: 'Courier New', Courier, monospace; font-size: 15px; white-space: pre-wrap; color: #a5b4fc; margin: 0; flex-grow: 1;"></pre>
+                </div>
+            </div>
+        `;
+        updateRobotsPreview(); 
+    }
+
+    window.updateRobotsPreview = function() {
+        let def = document.getElementById('rob-default').value;
+        let delay = document.getElementById('rob-delay').value;
+        let sitemap = document.getElementById('rob-sitemap').value;
+        let disallowRaw = document.getElementById('rob-disallow').value;
+
+        let out = "User-agent: *\\n";
+        
+        if(def === 'disallow') {
+            out += "Disallow: /\\n";
+        } else {
+            let lines = disallowRaw.split('\\n').filter(l => l.trim() !== '');
+            if(lines.length === 0) {
+                out += "Allow: /\\n";
+            } else {
+                lines.forEach(l => {
+                    let p = l.trim();
+                    if(!p.startsWith('/')) p = '/' + p;
+                    out += "Disallow: " + p + "\\n";
+                });
+            }
+        }
+
+        if(delay && delay > 0) {
+            out += "Crawl-delay: " + delay + "\\n";
+        }
+
+        if(sitemap && sitemap.trim() !== '') {
+            out += "\\nSitemap: " + sitemap.trim() + "\\n";
+        }
+
+        document.getElementById('rob-preview').innerText = out;
+        window.currentRobotsTxt = out;
+    };
+
+    window.downloadRobotsTxt = function() {
+        const blob = new Blob([window.currentRobotsTxt], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'robots.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    };
 
     function getScoreColor(score) {
         if(score >= 90) return '#10b981';
@@ -264,7 +370,6 @@ def home():
         html2pdf().set(opt).from(element).save().then(() => { header.style.display = 'none'; });
     }
 
-    // FIXED: Escaped XSLT string properly without breaking JS parser
     const xsltContent = '<?xml version="1.0" encoding="UTF-8"?>\\n' +
 '<xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:sitemap="http://www.sitemaps.org/schemas/sitemap/0.9">\\n' +
 '  <xsl:template match="/">\\n' +
