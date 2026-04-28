@@ -1,5 +1,8 @@
-from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Depends, HTTPException, status, Request
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from pydantic import BaseModel
+from typing import List, Dict, Any
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
@@ -9,12 +12,65 @@ import re
 from collections import Counter
 import concurrent.futures
 import os
+import secrets
 
 app = FastAPI()
 
-@app.get("/", response_class=HTMLResponse)
-def home():
-    return """
+# --- ADMIN SECRETS & CONFIGURATION ---
+ADMIN_USER = os.getenv("ADMIN_USER", "admin")
+ADMIN_PASS = os.getenv("ADMIN_PASS", "seo2026") # Change this when deploying!
+CONFIG_FILE = "seo_config.json"
+
+DEFAULT_CONFIG = {
+    "tools": [
+        {"id": "sitemap", "icon": "🗺️", "title": "XML Sitemap Generator", "desc": "Deep hybrid crawl tool. Categorizes URLs into Posts, Pages, and Categories to generate a perfectly structured XML Sitemap Index.", "mode": "sitemap"},
+        {"id": "robots", "icon": "🤖", "title": "Robots.txt Generator", "desc": "Instantly generate standard or complex robots.txt rules to securely control how search engines crawl and index your site files.", "mode": "robots"},
+        {"id": "webp", "icon": "🖼️", "title": "Image to WebP Converter", "desc": "Instantly convert JPGs and PNGs to next-gen WebP format for faster page loading, with built-in SEO-friendly file renaming.", "mode": "webp"},
+        {"id": "llms", "icon": "🧠", "title": "llms.txt Generator", "desc": "Prepare your site for Artificial Engine Optimization (AEO). Auto-fetch metadata and generate an llms.txt file to instruct AI models.", "mode": "llms"}
+    ],
+    "custom_css": "/* Add global CSS overrides here (e.g., change colors, fonts) */\n:root {\n  /* --primary: #ff0000; */ \n}",
+    "custom_js": "/* Add global JS trackers (like Google Analytics) or logic here */\nconsole.log('SEO Suite Loaded');"
+}
+
+def load_config():
+    if not os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, "w") as f:
+            json.dump(DEFAULT_CONFIG, f, indent=4)
+        return DEFAULT_CONFIG
+    try:
+        with open(CONFIG_FILE, "r") as f:
+            return json.load(f)
+    except:
+        return DEFAULT_CONFIG
+
+def save_config(config_data):
+    with open(CONFIG_FILE, "w") as f:
+        json.dump(config_data, f, indent=4)
+
+security = HTTPBasic()
+
+def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
+    correct_username = secrets.compare_digest(credentials.username, ADMIN_USER)
+    correct_password = secrets.compare_digest(credentials.password, ADMIN_PASS)
+    if not (correct_username and correct_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return credentials.username
+
+class ConfigUpdate(BaseModel):
+    tools: List[Dict[str, Any]]
+    custom_css: str
+    custom_js: str
+
+# --- FRONTEND TEMPLATE ---
+PUBLIC_HTML = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SEO Analyzer Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
@@ -144,13 +200,18 @@ def home():
     .generator-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text-main); }
     .generator-input { width: 100%; padding: 12px 15px; border-radius: 8px; border: 1px solid #e2e8f0; font-family: 'Poppins', sans-serif; font-size: 14px; box-sizing: border-box; outline: none; transition: border-color 0.3s; }
     .generator-input:focus { border-color: var(--orange); }
-    </style>
 
+    /* DYNAMIC ADMIN STYLES INJECTED HERE */
+    {{ CUSTOM_CSS }}
+    </style>
+</head>
+<body>
     <div class="top-nav-wrapper">
         <div class="nav-container">
             <button class="nav-btn active" id="tab-seo" onclick="switchTab('seo')">SEO Audit</button>
             <button class="nav-btn" id="tab-content" onclick="switchTab('content')">Content Checker</button>
             <button class="nav-btn" id="tab-tools" onclick="switchTab('tools')">Tools Hub</button>
+            <a href="/admin" style="text-decoration:none;"><button class="nav-btn" style="border-left: 1px solid #e2e8f0; border-radius: 0 50px 50px 0; margin-left: 5px;" title="Admin Dashboard">⚙️</button></a>
         </div>
     </div>
 
@@ -167,6 +228,9 @@ def home():
     </div>
 
     <script>
+    /* DYNAMIC ADMIN CONFIG INJECTED HERE */
+    const DYNAMIC_TOOLS = {{ TOOLS_JSON }};
+
     let currentMode = 'seo';
 
     function switchTab(mode) {
@@ -202,68 +266,44 @@ def home():
             searchCont.style.display = 'none'; 
             renderToolsDirectory();
         }
-        else if (mode === 'sitemap') {
-            document.getElementById('tab-tools').classList.add('active', 'orange-grad');
-            titleEl.innerHTML = 'XML Sitemap <span style="color:var(--orange)">Generator</span>';
-            btnEl.innerText = 'Generate Sitemap';
-            btnEl.classList.add('orange-btn');
-            searchCont.style.display = 'flex';
-            document.getElementById('out').innerHTML = '';
-        }
-        else if (mode === 'robots') {
-            document.getElementById('tab-tools').classList.add('active', 'orange-grad');
-            titleEl.innerHTML = 'Robots.txt <span style="color:var(--orange)">Generator</span>';
-            searchCont.style.display = 'none'; 
-            document.getElementById('out').innerHTML = '';
-            renderRobotsGenerator();
-        }
-        else if (mode === 'webp') {
-            document.getElementById('tab-tools').classList.add('active', 'orange-grad');
-            titleEl.innerHTML = 'Image to WebP <span style="color:var(--orange)">Converter</span>';
-            searchCont.style.display = 'none'; 
-            document.getElementById('out').innerHTML = '';
-            renderWebpConverter();
-        }
-        else if (mode === 'llms') {
-            document.getElementById('tab-tools').classList.add('active', 'orange-grad');
-            titleEl.innerHTML = 'llms.txt <span style="color:var(--orange)">Generator</span>';
-            searchCont.style.display = 'none'; 
-            document.getElementById('out').innerHTML = '';
-            renderLlmsGenerator();
+        else {
+            // Dynamic Tool Routing
+            const toolData = DYNAMIC_TOOLS.find(t => t.mode === mode);
+            if(toolData) {
+                document.getElementById('tab-tools').classList.add('active', 'orange-grad');
+                titleEl.innerHTML = toolData.title.replace(/ (.+)$/, ' <span style="color:var(--orange)">$1</span>');
+                
+                if(mode === 'sitemap') {
+                    btnEl.innerText = 'Generate Sitemap';
+                    btnEl.classList.add('orange-btn');
+                    searchCont.style.display = 'flex';
+                    document.getElementById('out').innerHTML = '';
+                } else if(mode === 'robots') {
+                    searchCont.style.display = 'none'; 
+                    renderRobotsGenerator();
+                } else if(mode === 'webp') {
+                    searchCont.style.display = 'none'; 
+                    renderWebpConverter();
+                } else if(mode === 'llms') {
+                    searchCont.style.display = 'none'; 
+                    renderLlmsGenerator();
+                }
+            }
         }
     }
 
     function renderToolsDirectory() {
-        document.getElementById('out').innerHTML = `
-            <div class="card" style="background: transparent; border: none; box-shadow: none; padding: 0;">
-                <div class="tools-hub-grid">
-                    <div class="tool-card" onclick="switchTab('sitemap')">
-                        <div class="tool-icon">🗺️</div>
-                        <h3>XML Sitemap Generator</h3>
-                        <p>Deep hybrid crawl tool. Categorizes URLs into Posts, Pages, and Categories to generate a perfectly structured XML Sitemap Index.</p>
-                        <div class="tool-action">Open Tool →</div>
-                    </div>
-                    <div class="tool-card" onclick="switchTab('robots')">
-                        <div class="tool-icon">🤖</div>
-                        <h3>Robots.txt Generator</h3>
-                        <p>Instantly generate standard or complex robots.txt rules to securely control how search engines crawl and index your site files.</p>
-                        <div class="tool-action">Open Tool →</div>
-                    </div>
-                    <div class="tool-card" onclick="switchTab('webp')">
-                        <div class="tool-icon">🖼️</div>
-                        <h3>Image to WebP Converter</h3>
-                        <p>Instantly convert JPGs and PNGs to next-gen WebP format for faster page loading, with built-in SEO-friendly file renaming.</p>
-                        <div class="tool-action">Open Tool →</div>
-                    </div>
-                    <div class="tool-card" onclick="switchTab('llms')">
-                        <div class="tool-icon">🧠</div>
-                        <h3>llms.txt Generator</h3>
-                        <p>Prepare your site for Artificial Engine Optimization (AEO). Auto-fetch metadata and generate an llms.txt file to instruct AI models.</p>
-                        <div class="tool-action">Open Tool →</div>
-                    </div>
-                </div>
-            </div>
-        `;
+        let html = '<div class="card" style="background: transparent; border: none; box-shadow: none; padding: 0;"><div class="tools-hub-grid">';
+        DYNAMIC_TOOLS.forEach(t => {
+            html += `<div class="tool-card" onclick="switchTab('${t.mode}')">
+                <div class="tool-icon">${t.icon}</div>
+                <h3>${t.title}</h3>
+                <p>${t.desc}</p>
+                <div class="tool-action">Open Tool →</div>
+            </div>`;
+        });
+        html += '</div></div>';
+        document.getElementById('out').innerHTML = html;
     }
 
     // --- UPDATED: llms.txt Generator Logic with Smart Auto-Fetch ---
@@ -1160,8 +1200,164 @@ def home():
             </div>
         `;
     }
+    // Initialize default tab
+    switchTab('seo');
     </script>
-    """
+</body>
+</html>
+"""
+
+# --- ADMIN TEMPLATE ---
+ADMIN_HTML = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SEO Suite Admin Panel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.36.2/ace.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 260px; background: #1e293b; padding: 25px; border-right: 1px solid #334155; display: flex; flex-direction: column; }
+        .sidebar h2 { margin-top: 0; margin-bottom: 30px; font-size: 22px; color: #f8fafc; display: flex; align-items: center; gap: 10px; }
+        .nav-link { display: block; padding: 12px 15px; margin-bottom: 8px; color: #cbd5e1; text-decoration: none; cursor: pointer; border-radius: 6px; font-weight: 500; transition: all 0.2s; }
+        .nav-link:hover { background: #334155; color: white; }
+        .nav-link.active { background: #3b82f6; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .content { flex-grow: 1; display: flex; flex-direction: column; }
+        #editor { flex-grow: 1; width: 100%; font-size: 15px; }
+        .header { padding: 15px 25px; background: #1e293b; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+        .btn-save { background: #10b981; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: background 0.3s; }
+        .btn-save:hover { background: #059669; }
+        .btn-view { background: #3b82f6; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; text-decoration: none; margin-right: 10px;}
+        .btn-view:hover { background: #2563eb; }
+        .warning-box { margin-top: auto; padding: 15px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 6px; font-size: 12px; color: #fcd34d; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2><span>⚙️</span> CMS Admin</h2>
+        <div class="nav-link active" onclick="loadTab('tools')">🔧 Tools Arrangement (JSON)</div>
+        <div class="nav-link" onclick="loadTab('css')">🎨 Global Styles (CSS)</div>
+        <div class="nav-link" onclick="loadTab('js')">⚡ Custom Logic (JS)</div>
+        
+        <div class="warning-box">
+            <b>Render Hosting Note:</b> Changes are saved to <code>seo_config.json</code>. If you are on Render's free tier without a Persistent Disk attached, these changes will reset when the server goes to sleep.
+        </div>
+    </div>
+    <div class="content">
+        <div class="header">
+            <h3 id="editor-title" style="margin:0; font-weight: 500;">Editing: Tools Arrangement (JSON)</h3>
+            <div>
+                <a href="/" target="_blank" class="btn-view">View Live Site ↗</a>
+                <button class="btn-save" onclick="saveConfig()">Save Changes</button>
+            </div>
+        </div>
+        <div id="editor"></div>
+    </div>
+
+    <script>
+        let currentConfig = {};
+        let currentTab = 'tools';
+        const editor = ace.edit("editor");
+        editor.setTheme("ace/theme/one_dark");
+        
+        async function fetchConfig() {
+            try {
+                let res = await fetch('/api/admin/config');
+                currentConfig = await res.json();
+                loadTab('tools');
+            } catch(e) {
+                alert("Failed to load configuration.");
+            }
+        }
+
+        function loadTab(tab) {
+            // Save current tab content back to object before switching
+            if(currentTab === 'tools') {
+                try { currentConfig.tools = JSON.parse(editor.getValue()); } catch(e) { }
+            } else if(currentTab === 'css') {
+                currentConfig.custom_css = editor.getValue();
+            } else if(currentTab === 'js') {
+                currentConfig.custom_js = editor.getValue();
+            }
+
+            currentTab = tab;
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if(tab === 'tools') {
+                document.getElementById('editor-title').innerText = "Editing: Tools Arrangement (JSON)";
+                editor.session.setMode("ace/mode/json");
+                editor.setValue(JSON.stringify(currentConfig.tools, null, 4), -1);
+            } else if(tab === 'css') {
+                document.getElementById('editor-title').innerText = "Editing: Global Styles (CSS)";
+                editor.session.setMode("ace/mode/css");
+                editor.setValue(currentConfig.custom_css || "", -1);
+            } else if(tab === 'js') {
+                document.getElementById('editor-title').innerText = "Editing: Custom Logic (JS)";
+                editor.session.setMode("ace/mode/javascript");
+                editor.setValue(currentConfig.custom_js || "", -1);
+            }
+        }
+
+        async function saveConfig() {
+            // Save current editor state
+            if(currentTab === 'tools') {
+                try { 
+                    currentConfig.tools = JSON.parse(editor.getValue()); 
+                } catch(e) { 
+                    alert("Invalid JSON format! Please fix syntax errors before saving."); 
+                    return; 
+                }
+            } else if(currentTab === 'css') {
+                currentConfig.custom_css = editor.getValue();
+            } else if(currentTab === 'js') {
+                currentConfig.custom_js = editor.getValue();
+            }
+
+            let res = await fetch('/api/admin/config', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(currentConfig)
+            });
+            
+            if(res.ok) {
+                alert('Saved successfully! Click "View Live Site" to see changes.');
+            } else {
+                alert('Failed to save configuration. Check server logs.');
+            }
+        }
+
+        fetchConfig();
+    </script>
+</body>
+</html>
+"""
+
+# --- FASTAPI ROUTES ---
+
+@app.get("/", response_class=HTMLResponse)
+def home():
+    # Load dynamic config
+    config = load_config()
+    
+    # Inject dynamic content into HTML template
+    html = PUBLIC_HTML.replace("{{ CUSTOM_CSS }}", config.get("custom_css", ""))
+    html = html.replace("{{ TOOLS_JSON }}", json.dumps(config.get("tools", [])))
+    return html
+
+@app.get("/admin", response_class=HTMLResponse)
+def admin_panel(username: str = Depends(verify_admin)):
+    return ADMIN_HTML
+
+@app.get("/api/admin/config")
+def get_admin_config(username: str = Depends(verify_admin)):
+    return load_config()
+
+@app.post("/api/admin/config")
+def save_admin_config(config_update: ConfigUpdate, username: str = Depends(verify_admin)):
+    save_config(config_update.dict())
+    return {"status": "success"}
+
+# --- EXISTING BACKEND LOGIC (SEO, Content, Sitemap, LLMs) ---
 
 def get_base_soup(url):
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"}
@@ -1209,7 +1405,6 @@ def get_openai_suggestion(prompt, api_key):
         return f"AI Generation Failed: {str(e)}"
     return None
 
-# --- FIXED: Auto-Fetch Endpoint with Smart Brand, Categorization & Clean Newlines ---
 @app.get("/auto-llms")
 def auto_llms(url: str):
     try:
@@ -1220,7 +1415,6 @@ def auto_llms(url: str):
         res = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(res.text, "html.parser")
         
-        # Smart Brand Name Extraction
         og_site_name = soup.find("meta", property="og:site_name")
         if og_site_name and og_site_name.get("content"):
             brand_name = og_site_name["content"].strip()
@@ -1228,7 +1422,6 @@ def auto_llms(url: str):
             domain_parts = urlparse(url).netloc.replace("www.", "").split('.')
             brand_name = domain_parts[0].upper() if len(domain_parts) > 0 else "Website"
             
-        # Description Extraction
         desc_tag = soup.find("meta", attrs={"name": "description"})
         og_desc = soup.find("meta", property="og:description")
         desc = ""
@@ -1239,7 +1432,6 @@ def auto_llms(url: str):
             
         tagline = desc.split('.')[0] + "." if desc else f"Comprehensive resources and services by {brand_name}."
         
-        # Smart Link Extraction
         base_domain = urlparse(url).netloc
         seen_urls = set()
         links_data = []
@@ -1264,7 +1456,6 @@ def auto_llms(url: str):
                     seen_urls.add(href)
                     links_data.append({"url": href, "text": text})
                     
-        # Semantic Categorization
         categories = {
             "Core Services": [],
             "Visa & Immigration Services": [],
@@ -1320,7 +1511,6 @@ def auto_llms(url: str):
                     markdown_links += f"- [{clean_text}]({item['url']}): {desc_action} {clean_text.lower()}.\n"
                 markdown_links += "\n"
                 
-        # Optional AI Description Rewriter
         openai_api_key = os.getenv("OPENAI_API_KEY", "YOUR_OPENAI_API_KEY_HERE")
         if openai_api_key and openai_api_key != "YOUR_OPENAI_API_KEY_HERE":
             raw_text = soup.get_text(separator=" ", strip=True)[:3000]
