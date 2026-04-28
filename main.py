@@ -21,15 +21,24 @@ ADMIN_USER = os.getenv("ADMIN_USER", "admin")
 ADMIN_PASS = os.getenv("ADMIN_PASS", "seo2026") # Change this when deploying!
 CONFIG_FILE = "seo_config.json"
 
+# New Structured Default Config for Visual CMS
 DEFAULT_CONFIG = {
+    "branding": {
+        "title": "SEO Analyzer Pro",
+        "author": "Built by Yousaf Saneen"
+    },
+    "theme": {
+        "primary": "#3b82f6",
+        "secondary": "#0ea5e9",
+        "accent": "#f97316"
+    },
     "tools": [
         {"id": "sitemap", "icon": "🗺️", "title": "XML Sitemap Generator", "desc": "Deep hybrid crawl tool. Categorizes URLs into Posts, Pages, and Categories to generate a perfectly structured XML Sitemap Index.", "mode": "sitemap"},
         {"id": "robots", "icon": "🤖", "title": "Robots.txt Generator", "desc": "Instantly generate standard or complex robots.txt rules to securely control how search engines crawl and index your site files.", "mode": "robots"},
         {"id": "webp", "icon": "🖼️", "title": "Image to WebP Converter", "desc": "Instantly convert JPGs and PNGs to next-gen WebP format for faster page loading, with built-in SEO-friendly file renaming.", "mode": "webp"},
         {"id": "llms", "icon": "🧠", "title": "llms.txt Generator", "desc": "Prepare your site for Artificial Engine Optimization (AEO). Auto-fetch metadata and generate an llms.txt file to instruct AI models.", "mode": "llms"}
     ],
-    "custom_css": "/* Add global CSS overrides here (e.g., change colors, fonts) */\n:root {\n  /* --primary: #ff0000; */ \n}",
-    "custom_js": "/* Add global JS trackers (like Google Analytics) or logic here */\nconsole.log('SEO Suite Loaded');"
+    "custom_js": "/* Add global JS trackers (like Google Analytics) or logic here */"
 }
 
 def load_config():
@@ -39,7 +48,11 @@ def load_config():
         return DEFAULT_CONFIG
     try:
         with open(CONFIG_FILE, "r") as f:
-            return json.load(f)
+            config = json.load(f)
+            # Migration safety check for older config formats
+            if "theme" not in config: config["theme"] = DEFAULT_CONFIG["theme"]
+            if "branding" not in config: config["branding"] = DEFAULT_CONFIG["branding"]
+            return config
     except:
         return DEFAULT_CONFIG
 
@@ -60,9 +73,11 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
         )
     return credentials.username
 
+# Updated Pydantic Model to handle visual form data
 class ConfigUpdate(BaseModel):
+    branding: Dict[str, str]
+    theme: Dict[str, str]
     tools: List[Dict[str, Any]]
-    custom_css: str
     custom_js: str
 
 # --- FRONTEND TEMPLATE ---
@@ -70,7 +85,7 @@ PUBLIC_HTML = """
 <!DOCTYPE html>
 <html>
 <head>
-    <title>SEO Analyzer Pro</title>
+    <title>{{ BRAND_TITLE }}</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
@@ -82,13 +97,16 @@ PUBLIC_HTML = """
         --card-bg: #ffffff;
         --text-main: #1e293b;
         --text-muted: #64748b;
-        --primary: #3b82f6;
-        --secondary: #0ea5e9;
+        
+        /* DYNAMIC THEME COLORS INJECTED HERE */
+        --primary: {{ THEME_PRIMARY }};
+        --secondary: {{ THEME_SECONDARY }};
+        --orange: {{ THEME_ACCENT }};
+        
         --success: #10b981;
         --warning: #f59e0b;
         --danger: #ef4444;
         --purple: #8b5cf6;
-        --orange: #f97316;
     }
 
     body { margin: 0; font-family: 'Poppins', sans-serif; background-color: var(--bg-color); color: var(--text-main); }
@@ -100,7 +118,7 @@ PUBLIC_HTML = """
     .nav-btn { padding: 12px 30px; border-radius: 50px; font-family: 'Poppins', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--text-muted); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     .nav-btn:hover { color: var(--text-main); background: rgba(255,255,255,0.6); }
     .nav-btn.active { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; box-shadow: 0 6px 15px -3px rgba(59, 130, 246, 0.4); text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-    .nav-btn.active.orange-grad { background: linear-gradient(135deg, var(--orange), #fb923c); box-shadow: 0 6px 15px -3px rgba(249, 115, 22, 0.4); }
+    .nav-btn.active.orange-grad { background: linear-gradient(135deg, var(--orange), var(--orange)); box-shadow: 0 6px 15px -3px rgba(0, 0, 0, 0.2); }
 
     .header-section { text-align: center; margin-bottom: 40px; }
     h1 { font-size: 2.5rem; margin-bottom: 5px; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; transition: all 0.3s ease; }
@@ -111,12 +129,12 @@ PUBLIC_HTML = """
     
     button.primary-btn { padding: 16px 32px; background: linear-gradient(135deg, var(--primary), var(--secondary)); background-size: 200% auto; border: none; border-radius: 50px; color: white; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3); transition: all 0.4s ease; }
     button.primary-btn:hover { background-position: right center; transform: translateY(-2px); }
-    button.primary-btn.orange-btn { background: linear-gradient(135deg, var(--orange), #fb923c); box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.3); }
+    button.primary-btn.orange-btn { background: var(--orange); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2); }
     button.pdf-btn { padding: 10px 24px; background: #1e293b; border: none; border-radius: 8px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.3s; display: flex; align-items: center; gap: 8px; }
     button.pdf-btn:hover { background: #334155; }
     
     button.xml-btn { padding: 10px 20px; background: var(--orange); border: none; border-radius: 8px; color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.3s; display: flex; align-items: center; gap: 8px; }
-    button.xml-btn:hover { background: #ea580c; }
+    button.xml-btn:hover { opacity: 0.9; }
     button.xml-btn-outline { padding: 10px 20px; background: white; border: 2px solid var(--orange); border-radius: 8px; color: var(--orange); font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.3s; }
     button.xml-btn-outline:hover { background: #fff7ed; }
 
@@ -125,8 +143,8 @@ PUBLIC_HTML = """
 
     .sitemap-table-wrapper { background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
     .sitemap-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
-    .sitemap-table th { background: #3b82f6; color: white; padding: 12px 20px; font-weight: 600; }
-    .sitemap-table td { padding: 12px 20px; border-bottom: 1px solid #e2e8f0; color: #3b82f6; }
+    .sitemap-table th { background: var(--primary); color: white; padding: 12px 20px; font-weight: 600; }
+    .sitemap-table td { padding: 12px 20px; border-bottom: 1px solid #e2e8f0; color: var(--primary); }
     .sitemap-table td:last-child { color: #64748b; }
     .sitemap-table tr:last-child td { border-bottom: none; }
     .sitemap-table tr:hover td { background: #f8fafc; }
@@ -190,7 +208,7 @@ PUBLIC_HTML = """
     /* Tools Hub Grid */
     .tools-hub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
     .tool-card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; background: white; transition: all 0.3s ease; cursor: pointer; display: flex; flex-direction: column; }
-    .tool-card:hover { transform: translateY(-5px); border-color: var(--orange); box-shadow: 0 10px 20px -5px rgba(249, 115, 22, 0.15); }
+    .tool-card:hover { transform: translateY(-5px); border-color: var(--orange); box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1); }
     .tool-icon { font-size: 32px; margin-bottom: 15px; }
     .tool-card h3 { margin: 0 0 10px 0; color: var(--text-main); font-size: 18px; }
     .tool-card p { margin: 0 0 20px 0; font-size: 13px; color: var(--text-muted); line-height: 1.5; flex-grow: 1; }
@@ -200,9 +218,6 @@ PUBLIC_HTML = """
     .generator-label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text-main); }
     .generator-input { width: 100%; padding: 12px 15px; border-radius: 8px; border: 1px solid #e2e8f0; font-family: 'Poppins', sans-serif; font-size: 14px; box-sizing: border-box; outline: none; transition: border-color 0.3s; }
     .generator-input:focus { border-color: var(--orange); }
-
-    /* DYNAMIC ADMIN STYLES INJECTED HERE */
-    {{ CUSTOM_CSS }}
     </style>
 </head>
 <body>
@@ -217,8 +232,8 @@ PUBLIC_HTML = """
 
     <div class="container">
       <div class="header-section">
-          <h1 id="app-title">SEO Analyzer Pro</h1>
-          <div class="brand">Built by Yousaf Saneen</div>
+          <h1 id="app-title">{{ BRAND_TITLE }}</h1>
+          <div class="brand">{{ BRAND_AUTHOR }}</div>
           <div class="search-box" id="search-container">
               <input id='url' placeholder='https://example.com/'>
               <button class="primary-btn" id="analyze-btn" onclick='run()'>Run SEO Audit</button>
@@ -248,7 +263,7 @@ PUBLIC_HTML = """
 
         if (mode === 'seo') {
             document.getElementById('tab-seo').classList.add('active');
-            titleEl.innerHTML = 'SEO Analyzer <span style="color:var(--primary)">Pro</span>';
+            titleEl.innerHTML = '{{ BRAND_TITLE }}';
             btnEl.innerText = 'Run SEO Audit';
             searchCont.style.display = 'flex';
             document.getElementById('out').innerHTML = '';
@@ -267,7 +282,6 @@ PUBLIC_HTML = """
             renderToolsDirectory();
         }
         else {
-            // Dynamic Tool Routing
             const toolData = DYNAMIC_TOOLS.find(t => t.mode === mode);
             if(toolData) {
                 document.getElementById('tab-tools').classList.add('active', 'orange-grad');
@@ -306,39 +320,21 @@ PUBLIC_HTML = """
         document.getElementById('out').innerHTML = html;
     }
 
-    // --- UPDATED: llms.txt Generator Logic with Smart Auto-Fetch ---
+    // --- AUTO-FETCH LLMS LOGIC ---
     function renderLlmsGenerator() {
         document.getElementById('out').innerHTML = `
             <div class="card" style="background: #fff7ed; border-color: #ffedd5; padding: 20px; display: flex; gap: 15px; align-items: center; margin-bottom: 25px;">
                 <input type="text" id="llms-auto-url" class="generator-input" style="flex-grow: 1; border-color: #fdba74;" placeholder="Enter website URL to auto-fetch data (e.g. https://plusuae.com)">
                 <button onclick="autoFetchLlms()" id="llms-fetch-btn" style="background: var(--orange); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap;">Auto-Fetch Data ✨</button>
             </div>
-
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;">
                 <div class="card" style="margin-bottom: 0;">
                     <div class="card-title">llms.txt Configuration</div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <label class="generator-label">Brand Name</label>
-                        <input type="text" id="llms-name" onkeyup="updateLlmsPreview()" class="generator-input" placeholder="e.g. Plus UAE">
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <label class="generator-label">Tagline (Shown as Blockquote)</label>
-                        <input type="text" id="llms-tagline" onkeyup="updateLlmsPreview()" class="generator-input" placeholder="A brief catchphrase or mission statement.">
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <label class="generator-label">Description (For AI Context)</label>
-                        <textarea id="llms-summary" onkeyup="updateLlmsPreview()" rows="5" class="generator-input" style="resize: vertical;" placeholder="A comprehensive description of what your website provides..."></textarea>
-                    </div>
-                    
-                    <div style="margin-bottom: 10px;">
-                        <label class="generator-label">Sections & Key URLs (Markdown Format)</label>
-                        <textarea id="llms-urls" onkeyup="updateLlmsPreview()" rows="8" class="generator-input" style="font-family: monospace; resize: vertical;" placeholder="## Core Services\\n- [Service 1](https://...): Description\\n\\n## About Us\\n- [Team](https://...): Meet the team"></textarea>
-                    </div>
+                    <div style="margin-bottom: 20px;"><label class="generator-label">Brand Name</label><input type="text" id="llms-name" onkeyup="updateLlmsPreview()" class="generator-input" placeholder="e.g. Plus UAE"></div>
+                    <div style="margin-bottom: 20px;"><label class="generator-label">Tagline (Shown as Blockquote)</label><input type="text" id="llms-tagline" onkeyup="updateLlmsPreview()" class="generator-input" placeholder="A brief catchphrase or mission statement."></div>
+                    <div style="margin-bottom: 20px;"><label class="generator-label">Description (For AI Context)</label><textarea id="llms-summary" onkeyup="updateLlmsPreview()" rows="5" class="generator-input" style="resize: vertical;" placeholder="A comprehensive description of what your website provides..."></textarea></div>
+                    <div style="margin-bottom: 10px;"><label class="generator-label">Sections & Key URLs (Markdown Format)</label><textarea id="llms-urls" onkeyup="updateLlmsPreview()" rows="8" class="generator-input" style="font-family: monospace; resize: vertical;" placeholder="## Core Services\\n- [Service 1](https://...): Description"></textarea></div>
                 </div>
-                
                 <div class="card" style="margin-bottom: 0; background: #1e293b; border-color: #0f172a; display: flex; flex-direction: column;">
                     <div class="card-title" style="color: white; border-bottom: 1px solid #334155; padding-bottom: 15px; margin-bottom: 20px; justify-content: space-between;">
                         Live File Preview
@@ -357,30 +353,21 @@ PUBLIC_HTML = """
         if(!url.startsWith('http')) url = 'https://' + url;
         
         let btn = document.getElementById('llms-fetch-btn');
-        btn.innerText = 'Scanning...';
-        btn.style.opacity = '0.7';
-        btn.disabled = true;
+        btn.innerText = 'Scanning...'; btn.style.opacity = '0.7'; btn.disabled = true;
         
         try {
             let res = await fetch('/auto-llms?url=' + encodeURIComponent(url));
             let data = await res.json();
-            
             if(!data.error) {
                 document.getElementById('llms-name').value = data.brand || '';
                 document.getElementById('llms-tagline').value = data.tagline || '';
                 document.getElementById('llms-summary').value = data.description || '';
                 document.getElementById('llms-urls').value = data.markdown_links || '';
                 updateLlmsPreview();
-            } else {
-                alert('Failed to fetch data: ' + data.error);
-            }
-        } catch(e) {
-            alert('Network error while fetching data.');
-        }
+            } else { alert('Failed to fetch data: ' + data.error); }
+        } catch(e) { alert('Network error while fetching data.'); }
         
-        btn.innerText = 'Auto-Fetch Data ✨';
-        btn.style.opacity = '1';
-        btn.disabled = false;
+        btn.innerText = 'Auto-Fetch Data ✨'; btn.style.opacity = '1'; btn.disabled = false;
     }
 
     window.updateLlmsPreview = function() {
@@ -390,18 +377,9 @@ PUBLIC_HTML = """
         let urls = document.getElementById('llms-urls').value.trim();
 
         let out = "# " + name + "\\n\\n";
-        
-        if (tagline) {
-            out += "> " + tagline + "\\n\\n";
-        }
-        
-        if (desc) {
-            out += desc + "\\n\\n";
-        }
-
-        if (urls) {
-            out += urls + "\\n";
-        }
+        if (tagline) out += "> " + tagline + "\\n\\n";
+        if (desc) out += desc + "\\n\\n";
+        if (urls) out += urls + "\\n";
 
         document.getElementById('llms-preview').innerText = out;
         window.currentLlmsTxt = out;
@@ -409,51 +387,24 @@ PUBLIC_HTML = """
 
     window.downloadLlmsTxt = function() {
         const blob = new Blob([window.currentLlmsTxt], { type: 'text/plain' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'llms.txt';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = 'llms.txt'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
     };
 
-    // --- WebP Converter Logic ---
+    // --- WEBP CONVERTER ---
     function renderWebpConverter() {
         document.getElementById('out').innerHTML = `
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;">
                 <div class="card" style="margin-bottom: 0;">
                     <div class="card-title">Conversion Settings</div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <label class="generator-label">Upload Image (JPG, PNG, etc.)</label>
-                        <input type="file" id="webp-file" accept="image/*" onchange="handleImageUpload(event)" class="generator-input" style="background: #f8fafc; padding: 9px 15px;">
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <label class="generator-label">New File Name (SEO Friendly)</label>
-                        <input type="text" id="webp-filename" onkeyup="updateWebpPreview()" class="generator-input" placeholder="e.g. best-plumber-dubai">
-                        <p style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">We will automatically format it and append .webp</p>
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <label class="generator-label">Compression Quality: <span id="quality-val" style="color:var(--orange);">80</span>%</label>
-                        <input type="range" id="webp-quality" min="1" max="100" value="80" oninput="document.getElementById('quality-val').innerText=this.value; updateWebpPreview()" style="width: 100%; accent-color: var(--orange);">
-                        <p style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">80% is recommended for the best balance of quality and loading speed.</p>
-                    </div>
+                    <div style="margin-bottom: 20px;"><label class="generator-label">Upload Image (JPG, PNG, etc.)</label><input type="file" id="webp-file" accept="image/*" onchange="handleImageUpload(event)" class="generator-input" style="background: #f8fafc; padding: 9px 15px;"></div>
+                    <div style="margin-bottom: 20px;"><label class="generator-label">New File Name (SEO Friendly)</label><input type="text" id="webp-filename" onkeyup="updateWebpPreview()" class="generator-input" placeholder="e.g. best-plumber-dubai"><p style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">We will automatically append .webp</p></div>
+                    <div style="margin-bottom: 20px;"><label class="generator-label">Compression Quality: <span id="quality-val" style="color:var(--orange);">80</span>%</label><input type="range" id="webp-quality" min="1" max="100" value="80" oninput="document.getElementById('quality-val').innerText=this.value; updateWebpPreview()" style="width: 100%; accent-color: var(--orange);"></div>
                 </div>
-                
                 <div class="card" style="margin-bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
-                    <div class="card-title" style="width: 100%; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px; align-items: center;">
-                        Live Preview
-                        <button id="download-webp-btn" onclick="downloadWebp()" style="background: var(--text-muted); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: not-allowed; transition: background 0.3s;" disabled>Download .webp</button>
-                    </div>
-                    <div id="webp-preview-container" style="width: 100%; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; overflow: hidden; padding: 10px; box-sizing: border-box;">
-                        <span id="webp-placeholder" style="color: #94a3b8; font-size: 14px;">Upload an image to see preview</span>
-                        <img id="webp-preview-img" style="max-width: 100%; max-height: 250px; display: none; border-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                    </div>
-                    <div id="webp-stats" style="margin-top: 15px; font-size: 14px; color: var(--text-main); display: none; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 10px 20px; border-radius: 8px; width: 100%; box-sizing: border-box;">
-                        Estimated New Size: <b id="webp-size" style="color: #065f46; font-size: 16px;">0 KB</b>
-                    </div>
+                    <div class="card-title" style="width: 100%; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px; align-items: center;">Live Preview <button id="download-webp-btn" onclick="downloadWebp()" style="background: var(--text-muted); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: not-allowed; transition: background 0.3s;" disabled>Download .webp</button></div>
+                    <div id="webp-preview-container" style="width: 100%; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; overflow: hidden; padding: 10px; box-sizing: border-box;"><span id="webp-placeholder" style="color: #94a3b8; font-size: 14px;">Upload an image to see preview</span><img id="webp-preview-img" style="max-width: 100%; max-height: 250px; display: none; border-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></div>
+                    <div id="webp-stats" style="margin-top: 15px; font-size: 14px; color: var(--text-main); display: none; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 10px 20px; border-radius: 8px; width: 100%; box-sizing: border-box;">Estimated New Size: <b id="webp-size" style="color: #065f46; font-size: 16px;">0 KB</b></div>
                 </div>
             </div>
         `;
@@ -462,11 +413,8 @@ PUBLIC_HTML = """
     window.handleImageUpload = function(event) {
         const file = event.target.files[0];
         if (!file) return;
-
-        let rawName = file.name.replace(/\\.[^/.]+$/, "");
-        rawName = rawName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+        let rawName = file.name.replace(/\\.[^/.]+$/, "").toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
         document.getElementById('webp-filename').value = rawName;
-
         const reader = new FileReader();
         reader.onload = function(e) {
             const img = new Image();
@@ -475,12 +423,7 @@ PUBLIC_HTML = """
                 document.getElementById('webp-placeholder').style.display = 'none';
                 document.getElementById('webp-preview-img').style.display = 'block';
                 document.getElementById('webp-stats').style.display = 'block';
-                
-                let btn = document.getElementById('download-webp-btn');
-                btn.disabled = false;
-                btn.style.background = 'var(--orange)';
-                btn.style.cursor = 'pointer';
-                
+                let btn = document.getElementById('download-webp-btn'); btn.disabled = false; btn.style.background = 'var(--orange)'; btn.style.cursor = 'pointer';
                 updateWebpPreview();
             }
             img.src = e.target.result;
@@ -492,78 +435,36 @@ PUBLIC_HTML = """
         if (!window.currentImageToConvert) return;
         const img = window.currentImageToConvert;
         const quality = document.getElementById('webp-quality').value / 100;
-        
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        
+        const canvas = document.createElement('canvas'); canvas.width = img.width; canvas.height = img.height;
+        const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0);
         const webpDataUrl = canvas.toDataURL('image/webp', quality);
         document.getElementById('webp-preview-img').src = webpDataUrl;
-        
-        const base64str = webpDataUrl.split(',')[1];
-        const decoded = atob(base64str);
-        const sizeKB = (decoded.length / 1024).toFixed(2);
-        
+        const sizeKB = (atob(webpDataUrl.split(',')[1]).length / 1024).toFixed(2);
         document.getElementById('webp-size').innerText = sizeKB + " KB";
         window.currentWebpDataUrl = webpDataUrl;
     };
 
     window.downloadWebp = function() {
         if (!window.currentWebpDataUrl) return;
-        
-        let filename = document.getElementById('webp-filename').value.trim();
-        if (!filename) filename = "seo-optimized-image";
-        
-        filename = filename.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-        filename += ".webp";
-        
-        const a = document.createElement('a');
-        a.href = window.currentWebpDataUrl;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        let filename = document.getElementById('webp-filename').value.trim() || "seo-optimized-image";
+        filename = filename.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') + ".webp";
+        const a = document.createElement('a'); a.href = window.currentWebpDataUrl; a.download = filename;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
     };
 
-    // --- Robots.txt Generator Logic ---
+    // --- ROBOTS GENERATOR ---
     function renderRobotsGenerator() {
         document.getElementById('out').innerHTML = `
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;">
                 <div class="card" style="margin-bottom: 0;">
                     <div class="card-title">Rule Configuration</div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <label class="generator-label">Default Rule for All Robots (*)</label>
-                        <select id="rob-default" onchange="updateRobotsPreview()" class="generator-input" style="background: white; cursor: pointer;">
-                            <option value="allow">Allow All Crawling (Recommended)</option>
-                            <option value="disallow">Disallow All Crawling</option>
-                        </select>
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <label class="generator-label">Crawl-Delay (Seconds)</label>
-                        <input type="number" id="rob-delay" onkeyup="updateRobotsPreview()" onchange="updateRobotsPreview()" class="generator-input" placeholder="e.g. 5 (Leave blank for none)">
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <label class="generator-label">XML Sitemap URL</label>
-                        <input type="text" id="rob-sitemap" onkeyup="updateRobotsPreview()" onchange="updateRobotsPreview()" class="generator-input" placeholder="https://example.com/sitemap.xml">
-                    </div>
-                    
-                    <div style="margin-bottom: 10px;">
-                        <label class="generator-label">Disallowed Directories (One per line)</label>
-                        <textarea id="rob-disallow" onkeyup="updateRobotsPreview()" rows="4" class="generator-input" style="font-family: monospace; resize: vertical;" placeholder="/wp-admin/\\n/private-files/\\n/cgi-bin/"></textarea>
-                        <p style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">These folders will be blocked from Google Search.</p>
-                    </div>
+                    <div style="margin-bottom: 20px;"><label class="generator-label">Default Rule for All Robots (*)</label><select id="rob-default" onchange="updateRobotsPreview()" class="generator-input" style="background: white; cursor: pointer;"><option value="allow">Allow All Crawling (Recommended)</option><option value="disallow">Disallow All Crawling</option></select></div>
+                    <div style="margin-bottom: 20px;"><label class="generator-label">Crawl-Delay (Seconds)</label><input type="number" id="rob-delay" onkeyup="updateRobotsPreview()" onchange="updateRobotsPreview()" class="generator-input" placeholder="e.g. 5 (Leave blank for none)"></div>
+                    <div style="margin-bottom: 20px;"><label class="generator-label">XML Sitemap URL</label><input type="text" id="rob-sitemap" onkeyup="updateRobotsPreview()" onchange="updateRobotsPreview()" class="generator-input" placeholder="https://example.com/sitemap.xml"></div>
+                    <div style="margin-bottom: 10px;"><label class="generator-label">Disallowed Directories (One per line)</label><textarea id="rob-disallow" onkeyup="updateRobotsPreview()" rows="4" class="generator-input" style="font-family: monospace; resize: vertical;" placeholder="/wp-admin/\\n/private-files/"></textarea></div>
                 </div>
-                
                 <div class="card" style="margin-bottom: 0; background: #1e293b; border-color: #0f172a; display: flex; flex-direction: column;">
-                    <div class="card-title" style="color: white; border-bottom: 1px solid #334155; padding-bottom: 15px; margin-bottom: 20px; justify-content: space-between;">
-                        Live File Preview
-                        <button onclick="downloadRobotsTxt()" style="background: var(--orange); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.3s;">Download .txt</button>
-                    </div>
+                    <div class="card-title" style="color: white; border-bottom: 1px solid #334155; padding-bottom: 15px; margin-bottom: 20px; justify-content: space-between;">Live File Preview <button onclick="downloadRobotsTxt()" style="background: var(--orange); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">Download .txt</button></div>
                     <pre id="rob-preview" style="font-family: 'Courier New', Courier, monospace; font-size: 15px; white-space: pre-wrap; color: #a5b4fc; margin: 0; flex-grow: 1;"></pre>
                 </div>
             </div>
@@ -572,747 +473,441 @@ PUBLIC_HTML = """
     }
 
     window.updateRobotsPreview = function() {
-        let def = document.getElementById('rob-default').value;
-        let delay = document.getElementById('rob-delay').value;
-        let sitemap = document.getElementById('rob-sitemap').value;
-        let disallowRaw = document.getElementById('rob-disallow').value;
-
+        let def = document.getElementById('rob-default').value; let delay = document.getElementById('rob-delay').value;
+        let sitemap = document.getElementById('rob-sitemap').value; let disallowRaw = document.getElementById('rob-disallow').value;
         let out = "User-agent: *\\n";
-        
-        if(def === 'disallow') {
-            out += "Disallow: /\\n";
-        } else {
+        if(def === 'disallow') { out += "Disallow: /\\n"; } else {
             let lines = disallowRaw.split('\\n').filter(l => l.trim() !== '');
-            if(lines.length === 0) {
-                out += "Allow: /\\n";
-            } else {
-                lines.forEach(l => {
-                    let p = l.trim();
-                    if(!p.startsWith('/')) p = '/' + p;
-                    out += "Disallow: " + p + "\\n";
-                });
-            }
+            if(lines.length === 0) { out += "Allow: /\\n"; } else { lines.forEach(l => { out += "Disallow: " + (l.trim().startsWith('/') ? l.trim() : '/' + l.trim()) + "\\n"; }); }
         }
-
-        if(delay && delay > 0) {
-            out += "Crawl-delay: " + delay + "\\n";
-        }
-
-        if(sitemap && sitemap.trim() !== '') {
-            out += "\\nSitemap: " + sitemap.trim() + "\\n";
-        }
-
-        document.getElementById('rob-preview').innerText = out;
-        window.currentRobotsTxt = out;
+        if(delay && delay > 0) out += "Crawl-delay: " + delay + "\\n";
+        if(sitemap && sitemap.trim() !== '') out += "\\nSitemap: " + sitemap.trim() + "\\n";
+        document.getElementById('rob-preview').innerText = out; window.currentRobotsTxt = out;
     };
 
     window.downloadRobotsTxt = function() {
         const blob = new Blob([window.currentRobotsTxt], { type: 'text/plain' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'robots.txt';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'robots.txt'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
     };
 
-    function getScoreColor(score) {
-        if(score >= 90) return '#10b981';
-        if(score >= 70) return '#f59e0b';
-        return '#ef4444';
-    }
-
-    function getMetricColor(value, type) {
-        if (type === 'lcp') { return value <= 2.5 ? '#10b981' : (value <= 4.0 ? '#f59e0b' : '#ef4444'); }
-        if (type === 'cls') { return value <= 0.1 ? '#10b981' : (value <= 0.25 ? '#f59e0b' : '#ef4444'); }
-        if (type === 'inp') { return value <= 200 ? '#10b981' : (value <= 500 ? '#f59e0b' : '#ef4444'); }
-        return 'var(--text-muted)';
-    }
-
-    const renderBadges = (arr) => {
-        if (!arr || arr.length === 0) return "<span style='font-size:13px; color:#94a3b8;'>None found</span>";
-        return arr.map(k => `<div class="keyword-badge">${k.phrase} <span style="color:#64748b; font-weight:400; margin-left:4px;">(${k.density}%)</span></div>`).join("");
-    };
-
-    const renderList = (arr) => {
-        if (!arr || arr.length === 0) return "<div style='padding:10px;'>No items found.</div>";
-        return arr.map(item => `<div class="url-list-item">${item}</div>`).join("");
-    };
-
-    function downloadPDF(url) {
-        const element = document.getElementById('report-container');
-        const header = document.getElementById('pdf-header');
-        header.style.display = 'block';
-        
-        let cleanUrl = url.replace('https://', '').replace('http://', '').replaceAll('/', '');
-        let fileNameStr = "Report_" + currentMode + "_" + cleanUrl + ".pdf";
-
-        const opt = {
-            margin: [0.4, 0.4, 0.4, 0.4],
-            filename: fileNameStr,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, windowWidth: 1100 },
-            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-        };
-        html2pdf().set(opt).from(element).save().then(() => { header.style.display = 'none'; });
-    }
-
+    // --- SITEMAP DOWNLOAD HELPERS ---
     const xsltContent = '<?xml version="1.0" encoding="UTF-8"?>\\n' +
 '<xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:sitemap="http://www.sitemaps.org/schemas/sitemap/0.9">\\n' +
-'  <xsl:template match="/">\\n' +
-'    <html>\\n' +
-'      <head>\\n' +
-'        <title>XML Sitemap</title>\\n' +
-'        <style>\\n' +
-'          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #333; margin: 40px; }\\n' +
-'          h1 { color: #1e293b; margin-bottom: 5px; }\\n' +
-'          p { color: #64748b; font-size: 14px; margin-top: 0; }\\n' +
-'          table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }\\n' +
-'          th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }\\n' +
-'          th { background-color: #3b82f6; color: white; font-weight: 600; }\\n' +
-'          tr:hover { background-color: #f8fafc; }\\n' +
-'          a { color: #3b82f6; text-decoration: none; }\\n' +
-'          a:hover { text-decoration: underline; }\\n' +
-'          td:last-child { color: #64748b; }\\n' +
-'        </style>\\n' +
-'      </head>\\n' +
-'      <body>\\n' +
-'        <h1>XML Sitemap</h1>\\n' +
-'        <p>Generated by <b>SEO Analyzer Pro</b>, this is an XML Sitemap, meant for consumption by search engines.</p>\\n' +
-'        <table>\\n' +
-'          <tr><th>URL / Sitemap</th><th>Last Modified</th></tr>\\n' +
-'          <xsl:for-each select="sitemap:sitemapindex/sitemap:sitemap | sitemap:urlset/sitemap:url">\\n' +
-'            <tr>\\n' +
-'              <td><a href="{sitemap:loc}"><xsl:value-of select="sitemap:loc"/></a></td>\\n' +
-'              <td><xsl:value-of select="sitemap:lastmod"/></td>\\n' +
-'            </tr>\\n' +
-'          </xsl:for-each>\\n' +
-'        </table>\\n' +
-'      </body>\\n' +
-'    </html>\\n' +
-'  </xsl:template>\\n' +
-'</xsl:stylesheet>';
+'  <xsl:template match="/">\\n    <html>\\n      <head>\\n        <title>XML Sitemap</title>\\n        <style>\\n          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #333; margin: 40px; }\\n          h1 { color: #1e293b; margin-bottom: 5px; }\\n          p { color: #64748b; font-size: 14px; margin-top: 0; }\\n          table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }\\n          th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }\\n          th { background-color: #3b82f6; color: white; font-weight: 600; }\\n          tr:hover { background-color: #f8fafc; }\\n          a { color: #3b82f6; text-decoration: none; }\\n          a:hover { text-decoration: underline; }\\n          td:last-child { color: #64748b; }\\n        </style>\\n      </head>\\n      <body>\\n        <h1>XML Sitemap</h1>\\n        <p>Generated by <b>SEO Analyzer Pro</b>, this is an XML Sitemap, meant for consumption by search engines.</p>\\n        <table>\\n          <tr><th>URL / Sitemap</th><th>Last Modified</th></tr>\\n          <xsl:for-each select="sitemap:sitemapindex/sitemap:sitemap | sitemap:urlset/sitemap:url">\\n            <tr>\\n              <td><a href="{sitemap:loc}"><xsl:value-of select="sitemap:loc"/></a></td>\\n              <td><xsl:value-of select="sitemap:lastmod"/></td>\\n            </tr>\\n          </xsl:for-each>\\n        </table>\\n      </body>\\n    </html>\\n  </xsl:template>\\n</xsl:stylesheet>';
 
     function createXMLString(urls, type = "urlset", baseDomain = "", includeXSL = false) {
         let dateStr = new Date().toISOString().split('T')[0] + "T12:00:00+00:00";
         let xml = '<?xml version="1.0" encoding="UTF-8"?>\\n';
-        
-        if (includeXSL) {
-            xml += '<?xml-stylesheet type="text/xsl" href="main-sitemap.xsl"?>\\n';
-        }
+        if (includeXSL) xml += '<?xml-stylesheet type="text/xsl" href="main-sitemap.xsl"?>\\n';
         
         if (type === "sitemapindex") {
             xml += '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n';
-            urls.forEach(u => {
-                xml += '  <sitemap>\\n    <loc>' + u + '</loc>\\n    <lastmod>' + dateStr + '</lastmod>\\n  </sitemap>\\n';
-            });
+            urls.forEach(u => { xml += '  <sitemap>\\n    <loc>' + u + '</loc>\\n    <lastmod>' + dateStr + '</lastmod>\\n  </sitemap>\\n'; });
             xml += '</sitemapindex>';
         } else {
             xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n';
-            urls.forEach(u => {
-                let priority = (u === baseDomain || u === baseDomain + '/') ? '1.0' : '0.8';
-                xml += '  <url>\\n    <loc>' + u + '</loc>\\n    <lastmod>' + dateStr + '</lastmod>\\n    <priority>' + priority + '</priority>\\n  </url>\\n';
-            });
+            urls.forEach(u => { let priority = (u === baseDomain || u === baseDomain + '/') ? '1.0' : '0.8'; xml += '  <url>\\n    <loc>' + u + '</loc>\\n    <lastmod>' + dateStr + '</lastmod>\\n    <priority>' + priority + '</priority>\\n  </url>\\n'; });
             xml += '</urlset>';
         }
         return xml;
     }
 
     function downloadFlatSitemap() {
-        let allUrls = [];
-        Object.values(window.sitemapData).forEach(arr => { allUrls = allUrls.concat(arr); });
-        
+        let allUrls = []; Object.values(window.sitemapData).forEach(arr => { allUrls = allUrls.concat(arr); });
         let xml = createXMLString(allUrls, "urlset", window.sitemapDomain, false);
         const blob = new Blob([xml], { type: 'application/xml' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'sitemap.xml';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'sitemap.xml'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
     }
 
     function downloadStructuredSitemapZip() {
-        var zip = new JSZip();
-        zip.file("main-sitemap.xsl", xsltContent);
-        
-        let indexLinks = [];
-        let baseObj = new URL(window.sitemapDomain);
-        let baseUrl = baseObj.origin;
-
+        var zip = new JSZip(); zip.file("main-sitemap.xsl", xsltContent);
+        let indexLinks = []; let baseObj = new URL(window.sitemapDomain); let baseUrl = baseObj.origin;
         Object.keys(window.sitemapData).forEach(key => {
             let urls = window.sitemapData[key];
             if (urls.length > 0) {
-                let filename = key + "-sitemap.xml";
-                indexLinks.push(baseUrl + "/" + filename);
+                let filename = key + "-sitemap.xml"; indexLinks.push(baseUrl + "/" + filename);
                 zip.file(filename, createXMLString(urls, "urlset", baseUrl, true));
             }
         });
-
         zip.file("sitemap.xml", createXMLString(indexLinks, "sitemapindex", "", true));
-
         zip.generateAsync({type:"blob"}).then(function(content) {
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(content);
-            a.download = "sitemap_package.zip";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            const a = document.createElement('a'); a.href = URL.createObjectURL(content); a.download = "sitemap_package.zip"; document.body.appendChild(a); a.click(); document.body.removeChild(a);
         });
     }
 
+    // --- MAIN EXECUTOR ---
     async function run(){
       let url = document.getElementById('url').value;
       if(!url) return;
       if(!url.startsWith('http')) url = 'https://' + url;
 
-      let modeText = currentMode === 'seo' ? 'Technical SEO Audit & AI Engine' : 
-                     currentMode === 'content' ? 'Deep Content Analysis' : 'Hybrid Sitemap Extraction';
+      let modeText = currentMode === 'seo' ? 'Technical SEO Audit & AI Engine' : currentMode === 'content' ? 'Deep Content Analysis' : 'Hybrid Sitemap Extraction';
 
       document.getElementById('out').innerHTML = `
         <div class="card" style="text-align:center; padding: 40px;">
-            <div style="font-size: 18px; font-weight: 500; color: var(--text-muted);">
-                <span style="display:inline-block; animation: pulse 1.5s infinite;">Running ${modeText}...</span>
-            </div>
+            <div style="font-size: 18px; font-weight: 500; color: var(--text-muted);"><span style="display:inline-block; animation: pulse 1.5s infinite;">Running ${modeText}...</span></div>
             ${currentMode === 'sitemap' ? '<div style="font-size:13px; color:#94a3b8; margin-top:10px;">Categorizing CMS databases and actively spidering the site. This may take up to 45 seconds.</div>' : ''}
-        </div>
-        <style>@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }</style>
+        </div><style>@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }</style>
       `;
 
       try {
-          let endpoint = currentMode === 'seo' ? '/analyze' : 
-                         currentMode === 'content' ? '/analyze-content' : '/generate-sitemap';
-                         
+          let endpoint = currentMode === 'seo' ? '/analyze' : currentMode === 'content' ? '/analyze-content' : '/generate-sitemap';
           let res = await fetch(endpoint + '?url=' + encodeURIComponent(url));
           let data = await res.json();
+          if (data.error) { document.getElementById('out').innerHTML = `<div class="card" style="text-align:center; color:red;">Error: ${data.error}</div>`; return; }
+          if (currentMode === 'seo') renderSEO(data, url);
+          else if (currentMode === 'content') renderContent(data, url);
+          else renderSitemap(data, url);
+      } catch (err) { document.getElementById('out').innerHTML = `<div class="card" style="text-align:center; color:red;">Failed to fetch analysis. Check server logs.</div>`; }
+    }
 
-          if (data.error) {
-            document.getElementById('out').innerHTML = `<div class="card" style="text-align:center; color:red;">Error: ${data.error}</div>`;
-            return;
-          }
-
-          if (currentMode === 'seo') {
-              renderSEO(data, url);
-          } else if (currentMode === 'content') {
-              renderContent(data, url);
-          } else {
-              renderSitemap(data, url);
-          }
-      } catch (err) {
-          document.getElementById('out').innerHTML = `<div class="card" style="text-align:center; color:red;">Failed to fetch analysis. Check server logs.</div>`;
-      }
+    function getScoreColor(score) { if(score >= 90) return '#10b981'; if(score >= 70) return '#f59e0b'; return '#ef4444'; }
+    function getMetricColor(value, type) { if(type==='lcp') return value<=2.5?'#10b981':(value<=4.0?'#f59e0b':'#ef4444'); if(type==='cls') return value<=0.1?'#10b981':(value<=0.25?'#f59e0b':'#ef4444'); if(type==='inp') return value<=200?'#10b981':(value<=500?'#f59e0b':'#ef4444'); return 'var(--text-muted)'; }
+    const renderBadges = (arr) => { if(!arr || arr.length===0) return "<span style='font-size:13px; color:#94a3b8;'>None found</span>"; return arr.map(k => `<div class="keyword-badge">${k.phrase} <span style="color:#64748b; font-weight:400; margin-left:4px;">(${k.density}%)</span></div>`).join(""); };
+    const renderList = (arr) => { if(!arr || arr.length===0) return "<div style='padding:10px;'>No items found.</div>"; return arr.map(item => `<div class="url-list-item">${item}</div>`).join(""); };
+    function downloadPDF(url) {
+        const element = document.getElementById('report-container'); const header = document.getElementById('pdf-header'); header.style.display = 'block';
+        let cleanUrl = url.replace('https://', '').replace('http://', '').replaceAll('/', '');
+        html2pdf().set({ margin: [0.4, 0.4, 0.4, 0.4], filename: "Report_" + currentMode + "_" + cleanUrl + ".pdf", image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, windowWidth: 1100 }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } }).from(element).save().then(() => { header.style.display = 'none'; });
     }
 
     function renderSitemap(data, url) {
-        window.sitemapData = data.sitemaps; 
-        window.sitemapDomain = url;
-        
+        window.sitemapData = data.sitemaps; window.sitemapDomain = url;
         let dateStr = new Date().toISOString().split('T')[0] + " 12:00 +00:00";
-        
-        let tableRows = Object.keys(data.sitemaps).map(key => {
-            if(data.sitemaps[key].length === 0) return '';
-            let sitemapUrl = new URL(url).origin + "/" + key + "-sitemap.xml";
-            return `<tr><td>${sitemapUrl} <b>(${data.sitemaps[key].length} URLs)</b></td><td>${dateStr}</td></tr>`;
-        }).join('');
-
+        let tableRows = Object.keys(data.sitemaps).map(key => { if(data.sitemaps[key].length === 0) return ''; let sitemapUrl = new URL(url).origin + "/" + key + "-sitemap.xml"; return `<tr><td>${sitemapUrl} <b>(${data.sitemaps[key].length} URLs)</b></td><td>${dateStr}</td></tr>`; }).join('');
         document.getElementById('out').innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                <h2 style="margin: 0; color: var(--text-main); font-size: 1.5rem;">Sitemap Generated</h2>
-                <div style="display:flex; gap:10px;">
-                    <button class="xml-btn-outline" onclick="downloadFlatSitemap()">Download sitemap.xml (Flat)</button>
-                    <button class="xml-btn" onclick="downloadStructuredSitemapZip()">Download Structured ZIP Package</button>
-                </div>
-            </div>
-            
-            <div class="card" style="padding: 0; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-                <div class="sitemap-table-wrapper">
-                    <div style="padding: 20px; background: white; border-bottom: 1px solid #e2e8f0;">
-                        <h2 style="margin: 0 0 10px 0; color: #1e293b; font-size: 24px;">XML Sitemap Index</h2>
-                        <p style="margin: 0; color: #64748b; font-size: 14px;">Generated by <b>SEO Analyzer Pro</b>. This XML Sitemap Index file contains <b>${data.count}</b> total URLs divided across categorized sitemaps.</p>
-                    </div>
-                    <table class="sitemap-table">
-                        <tr><th>Sitemap Name</th><th>Last Modified</th></tr>
-                        ${tableRows}
-                    </table>
-                </div>
-            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;"><h2 style="margin: 0; color: var(--text-main); font-size: 1.5rem;">Sitemap Generated</h2><div style="display:flex; gap:10px;"><button class="xml-btn-outline" onclick="downloadFlatSitemap()">Download sitemap.xml (Flat)</button><button class="xml-btn" onclick="downloadStructuredSitemapZip()">Download Structured ZIP Package</button></div></div>
+            <div class="card" style="padding: 0; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05);"><div class="sitemap-table-wrapper"><div style="padding: 20px; background: white; border-bottom: 1px solid #e2e8f0;"><h2 style="margin: 0 0 10px 0; color: #1e293b; font-size: 24px;">XML Sitemap Index</h2><p style="margin: 0; color: #64748b; font-size: 14px;">Generated by <b>SEO Analyzer Pro</b>. This XML Sitemap Index file contains <b>${data.count}</b> total URLs divided across categorized sitemaps.</p></div><table class="sitemap-table"><tr><th>Sitemap Name</th><th>Last Modified</th></tr>${tableRows}</table></div></div>
         `;
     }
 
     function renderSEO(data, url) {
-        let onPageColor = getScoreColor(data.scores.on_page);
-        let techColor = getScoreColor(data.scores.technical);
-        let speedScores = { 'mobile': data.performance.mobile.score || 0, 'desktop': data.performance.desktop.score || 0 };
-
+        let onPageColor = getScoreColor(data.scores.on_page); let techColor = getScoreColor(data.scores.technical); let speedScores = { 'mobile': data.performance.mobile.score || 0, 'desktop': data.performance.desktop.score || 0 };
         document.getElementById('out').innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                <h2 style="margin: 0; color: var(--text-main); font-size: 1.5rem;">Audit Results for ${url}</h2>
-                <button class="pdf-btn" onclick="downloadPDF('${url}')">Download PDF Report</button>
-            </div>
-            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;"><h2 style="margin: 0; color: var(--text-main); font-size: 1.5rem;">Audit Results for ${url}</h2><button class="pdf-btn" onclick="downloadPDF('${url}')">Download PDF Report</button></div>
             <div id="report-container" style="background: var(--bg-color); padding: 10px;">
-                <div id="pdf-header" class="pdf-header">
-                    <h2>SEO Analyzer Pro</h2>
-                    <p>Comprehensive Audit Report generated for <b>${url}</b></p>
-                </div>
-
+                <div id="pdf-header" class="pdf-header"><h2>SEO Analyzer Pro</h2><p>Comprehensive Audit Report generated for <b>${url}</b></p></div>
                 <div class="scores-grid">
-                    <div class="card score-card" style="margin-bottom:0;">
-                        <div class="score-circle" style="background: conic-gradient(${onPageColor} ${data.scores.on_page}%, #e2e8f0 0);">
-                            <span style="color: ${onPageColor}">${data.scores.on_page}</span>
-                        </div>
-                        <div class="score-label">On-Page SEO</div>
-                        <div class="score-sublabel">Content & Architecture</div>
-                    </div>
-                    <div class="card score-card" style="margin-bottom:0;">
-                        <div class="score-circle" style="background: conic-gradient(${techColor} ${data.scores.technical}%, #e2e8f0 0);">
-                            <span style="color: ${techColor}">${data.scores.technical}</span>
-                        </div>
-                        <div class="score-label">Technical SEO</div>
-                        <div class="score-sublabel">Security & Indexing</div>
-                    </div>
-                    <div class="card score-card" style="margin-bottom:0;">
-                        <div class="score-circle" style="background: conic-gradient(${getScoreColor(speedScores.mobile)} ${speedScores.mobile}%, #e2e8f0 0);">
-                            <span style="color: ${getScoreColor(speedScores.mobile)}">${speedScores.mobile > 0 ? speedScores.mobile : 'F'}</span>
-                        </div>
-                        <div class="score-label">Mobile Speed</div>
-                        <div class="score-sublabel">Lighthouse Score</div>
-                    </div>
-                    <div class="card score-card" style="margin-bottom:0;">
-                        <div class="score-circle" style="background: conic-gradient(${getScoreColor(speedScores.desktop)} ${speedScores.desktop}%, #e2e8f0 0);">
-                            <span style="color: ${getScoreColor(speedScores.desktop)}">${speedScores.desktop > 0 ? speedScores.desktop : 'F'}</span>
-                        </div>
-                        <div class="score-label">Desktop Speed</div>
-                        <div class="score-sublabel">Lighthouse Score</div>
-                    </div>
+                    <div class="card score-card" style="margin-bottom:0;"><div class="score-circle" style="background: conic-gradient(${onPageColor} ${data.scores.on_page}%, #e2e8f0 0);"><span style="color: ${onPageColor}">${data.scores.on_page}</span></div><div class="score-label">On-Page SEO</div><div class="score-sublabel">Content & Architecture</div></div>
+                    <div class="card score-card" style="margin-bottom:0;"><div class="score-circle" style="background: conic-gradient(${techColor} ${data.scores.technical}%, #e2e8f0 0);"><span style="color: ${techColor}">${data.scores.technical}</span></div><div class="score-label">Technical SEO</div><div class="score-sublabel">Security & Indexing</div></div>
+                    <div class="card score-card" style="margin-bottom:0;"><div class="score-circle" style="background: conic-gradient(${getScoreColor(speedScores.mobile)} ${speedScores.mobile}%, #e2e8f0 0);"><span style="color: ${getScoreColor(speedScores.mobile)}">${speedScores.mobile > 0 ? speedScores.mobile : 'F'}</span></div><div class="score-label">Mobile Speed</div><div class="score-sublabel">Lighthouse Score</div></div>
+                    <div class="card score-card" style="margin-bottom:0;"><div class="score-circle" style="background: conic-gradient(${getScoreColor(speedScores.desktop)} ${speedScores.desktop}%, #e2e8f0 0);"><span style="color: ${getScoreColor(speedScores.desktop)}">${speedScores.desktop > 0 ? speedScores.desktop : 'F'}</span></div><div class="score-label">Desktop Speed</div><div class="score-sublabel">Lighthouse Score</div></div>
                 </div>
-
-                ${data.ai_suggestion ? `
-                <div class="ai-placeholder" style="margin-bottom: 25px; background: linear-gradient(to right, #fdf4ff, #faf5ff);">
-                    <h3>✨ AI Content Rewriter</h3>
-                    <div style="white-space: pre-wrap;">${data.ai_suggestion}</div>
-                </div>
-                ` : ''}
-
-                ${(data.issues.on_page.length > 0 || data.issues.technical.length > 0) ? `
-                <div class="issues-list" style="margin-top: 25px;">
-                    ${data.issues.on_page.length > 0 ? `
-                    <div class="issue-panel">
-                        <h3>⚠️ On-Page Action Items</h3>
-                        <ul>${data.issues.on_page.map(i => `<li>${i}</li>`).join("")}</ul>
-                    </div>
-                    ` : ''}
-                    ${data.issues.technical.length > 0 ? `
-                    <div class="issue-panel">
-                        <h3>⚙️ Technical Action Items</h3>
-                        <ul>${data.issues.technical.map(i => `<li>${i}</li>`).join("")}</ul>
-                    </div>
-                    ` : ''}
-                </div>
-                ` : '<div class="card" style="background:#ecfdf5; border-color:#a7f3d0; color:#065f46; text-align:center; font-weight:600; margin-top:25px;">🎉 Perfect! No severe SEO issues detected.</div>'}
-
-                <div class="card" style="margin-top: 25px;">
-                    <div class="card-title">Core Web Vitals Status</div>
-                    <div class="cwv-subgrid">
-                        <div>
-                            <div style="font-weight: 600; color: var(--text-muted); margin-bottom: 10px;">Mobile</div>
-                            <div class="cwv-item"><b>LCP</b> <span>${data.performance.mobile.lcp || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.mobile.lcp_v, 'lcp')}"></span></span></div>
-                            <div class="cwv-item"><b>CLS</b> <span>${data.performance.mobile.cls || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.mobile.cls_v, 'cls')}"></span></span></div>
-                            <div class="cwv-item"><b>INP</b> <span>${data.performance.mobile.inp || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.mobile.inp_v, 'inp')}"></span></span></div>
-                        </div>
-                        <div>
-                            <div style="font-weight: 600; color: var(--text-muted); margin-bottom: 10px;">Desktop</div>
-                            <div class="cwv-item"><b>LCP</b> <span>${data.performance.desktop.lcp || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.desktop.lcp_v, 'lcp')}"></span></span></div>
-                            <div class="cwv-item"><b>CLS</b> <span>${data.performance.desktop.cls || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.desktop.cls_v, 'cls')}"></span></span></div>
-                            <div class="cwv-item"><b>INP</b> <span>${data.performance.desktop.inp || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.desktop.inp_v, 'inp')}"></span></span></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-title">Page Overview ${data.js_rendered ? '<span style="font-size:12px; background:#f59e0b; color:white; padding:4px 8px; border-radius:4px; margin-left:10px;">JS Rendered</span>' : ''}</div>
-                    <div class="metrics-grid">
-                        <div class="metric-box"><div><div class="metric-value">${data.links.internal_count}</div><div class="metric-name">Internal Links</div></div></div>
-                        <div class="metric-box"><div><div class="metric-value">${data.links.external_count}</div><div class="metric-name">External Links</div></div></div>
-                        <div class="metric-box"><div><div class="metric-value">${data.images.total}</div><div class="metric-name">Images</div></div></div>
-                        <div class="metric-box"><div><div class="metric-value">${data.content.word_count}</div><div class="metric-name">Words Processed</div></div></div>
-                        <div class="metric-box"><div><div class="metric-value">${data.server.load_time_seconds}s</div><div class="metric-name">Server Response</div></div></div>
-                        <div class="metric-box"><div><div class="metric-value">${data.server.status_code}</div><div class="metric-name">HTTP Status</div></div></div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-title">Technical & Security Audits</div>
-                    <div class="audit-grid">
-                        <div class="audit-item">
-                            <div class="audit-icon ${data.technical.https ? 'audit-pass' : 'audit-fail'}">${data.technical.https ? '✅' : '❌'}</div>
-                            <div class="audit-details"><h4>SSL Checker and HTTPS</h4><p>${data.technical.https ? 'Website is successfully using HTTPS, a secure communication protocol.' : 'Warning: Website is not using HTTPS securely.'}</p></div>
-                        </div>
-                        <div class="audit-item">
-                            <div class="audit-icon ${data.technical.hsts ? 'audit-pass' : 'audit-fail'}">${data.technical.hsts ? '✅' : '❌'}</div>
-                            <div class="audit-details"><h4>HSTS Test</h4><p>${data.technical.hsts ? 'Website is using Strict-Transport-Security to force secure connections.' : 'Website is not using the Strict-Transport-Security header.'}</p></div>
-                        </div>
-                        <div class="audit-item">
-                            <div class="audit-icon ${data.technical.html_size_kb <= 100 ? 'audit-pass' : 'audit-fail'}">${data.technical.html_size_kb <= 100 ? '✅' : '❌'}</div>
-                            <div class="audit-details"><h4>HTML Page Size Test</h4><p>The size of this HTML document is <b>${data.technical.html_size_kb} Kb</b>.</p></div>
-                        </div>
-                        <div class="audit-item">
-                            <div class="audit-icon ${data.technical.has_schema ? 'audit-pass' : 'audit-fail'}">${data.technical.has_schema ? '✅' : '❌'}</div>
-                            <div class="audit-details"><h4>Schema.org Structured Data</h4><p>${data.technical.has_schema ? 'Using JSON-LD or Microdata Schema.' : 'Missing Schema markup.'}</p></div>
-                        </div>
-                        <div class="audit-item">
-                            <div class="audit-icon ${data.technical.has_ga ? 'audit-pass' : 'audit-fail'}">${data.technical.has_ga ? '✅' : '❌'}</div>
-                            <div class="audit-details"><h4>Google Analytics Test</h4><p>${data.technical.has_ga ? 'Google tracking scripts detected.' : 'No Google Analytics scripts detected.'}</p></div>
-                        </div>
-                        <div class="audit-item">
-                            <div class="audit-icon ${data.technical.has_favicon ? 'audit-pass' : 'audit-fail'}">${data.technical.has_favicon ? '✅' : '❌'}</div>
-                            <div class="audit-details"><h4>Favicon Test</h4><p>${data.technical.has_favicon ? 'Valid favicon found.' : 'No favicon link tag found.'}</p></div>
-                        </div>
-                        <div class="audit-item">
-                            <div class="audit-icon ${data.technical.lang_attr ? 'audit-pass' : 'audit-fail'}">${data.technical.lang_attr ? '✅' : '❌'}</div>
-                            <div class="audit-details"><h4>Language Attribute</h4><p>${data.technical.lang_attr ? `Page is using the Lang Attribute (${data.technical.lang_attr}).` : 'Missing HTML lang attribute.'}</p></div>
-                        </div>
-                        <div class="audit-item">
-                            <div class="audit-icon ${data.technical.has_hreflang ? 'audit-pass' : 'audit-fail'}">${data.technical.has_hreflang ? '✅' : '❌'}</div>
-                            <div class="audit-details"><h4>Hreflang Usage</h4><p>${data.technical.has_hreflang ? 'Page makes use of Hreflang attributes.' : 'Page is not making use of Hreflang attributes.'}</p></div>
-                        </div>
-                        <div class="audit-item">
-                            <div class="audit-icon ${data.technical.responsive_images_pass ? 'audit-pass' : 'audit-fail'}">${data.technical.responsive_images_pass ? '✅' : '❌'}</div>
-                            <div class="audit-details"><h4>Responsive Image Test</h4><p>${data.technical.responsive_images_pass ? 'Images are properly sized.' : 'Warning: Serving images larger than needed.'}</p></div>
-                        </div>
-                        <div class="audit-item">
-                            <div class="audit-icon ${data.technical.canonical_pass ? 'audit-pass' : 'audit-fail'}">${data.technical.canonical_pass ? '✅' : '❌'}</div>
-                            <div class="audit-details"><h4>Canonical Tag Test</h4><p>${data.technical.canonical_pass ? 'Website is using the canonical link tag.' : 'Missing canonical link tag.'}</p></div>
-                        </div>
-                        <div class="audit-item">
-                            <div class="audit-icon ${data.technical.noindex_pass ? 'audit-pass' : 'audit-fail'}">${data.technical.noindex_pass ? '✅' : '❌'}</div>
-                            <div class="audit-details"><h4>Noindex Tag Test</h4><p>${data.technical.noindex_pass ? 'Page does not use noindex. It can be indexed.' : 'Blocked by noindex tag.'}</p></div>
-                        </div>
-                        <div class="audit-item">
-                            <div class="audit-icon ${data.technical.www_resolve ? 'audit-pass' : 'audit-fail'}">${data.technical.www_resolve ? '✅' : '❌'}</div>
-                            <div class="audit-details"><h4>URL Canonicalization</h4><p>${data.technical.www_resolve ? 'WWW and non-WWW correctly resolve.' : 'Warning: WWW/non-WWW do not redirect.'}</p></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-title">Google SERP Simulator</div>
-                    <div class="serp-preview">
-                        <div class="serp-url">${url}</div>
-                        <div class="serp-title">${data.content.title}</div>
-                        <div class="serp-desc">${data.content.meta_description}</div>
-                    </div>
-                    <div class="char-check-block">
-                        <div>
-                            <div class="card-title" style="font-size: 15px; margin-bottom: 5px;">Website Used Meta Title</div>
-                            <span class="meta-website-used">${data.content.title}</span>
-                            <div class="char-status ${data.content.title_len > 10 && data.content.title_len <= 60 ? 'char-ok' : 'char-error'}">
-                                <div class="char-val">${data.content.title_len}</div>Title Characters Used (Optimal: 50-60)
-                            </div>
-                        </div>
-                        <div>
-                            <div class="card-title" style="font-size: 15px; margin-bottom: 5px;">Website Used Meta Description</div>
-                            <span class="meta-website-used">${data.content.meta_description}</span>
-                            <div class="char-status ${data.content.meta_desc_len > 50 && data.content.meta_desc_len <= 160 ? 'char-ok' : 'char-error'}">
-                                <div class="char-val">${data.content.meta_desc_len}</div>Description Characters Used (Optimal: 150-160)
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-title">Social Media Preview</div>
-                    <div class="social-preview-container">
-                        <div class="social-table">
-                            <div><b>og:title</b> <span>${data.og_tags.title || 'Missing'}</span></div>
-                            <div><b>og:desc</b> <span>${data.og_tags.description || 'Missing'}</span></div>
-                            <div><b>og:image</b> <span>${data.og_tags.image || 'Missing'}</span></div>
-                        </div>
-                        <div class="social-card-wrapper">
-                            ${data.og_tags.image ? `<img src="${data.og_tags.image}" class="social-img">` : '<div class="social-img" style="display:flex;align-items:center;justify-content:center;color:#94a3b8;">No Image Provided</div>'}
-                            <div class="social-text">
-                                <h4>${data.og_tags.title || data.content.title}</h4>
-                                <p>${data.og_tags.description || data.content.meta_description}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-title">Core Site Files Status</div>
-                    <div>
-                        <div class="file-badge ${data.site_files.robots ? 'file-found' : 'file-missing'}">${data.site_files.robots ? '✓' : '✗'} robots.txt</div>
-                        <div class="file-badge ${data.site_files.sitemap ? 'file-found' : 'file-missing'}">${data.site_files.sitemap ? '✓' : '✗'} sitemap.xml</div>
-                        <div class="file-badge ${data.site_files.llms ? 'file-found' : 'file-missing'}">${data.site_files.llms ? '✓' : '✗'} llms.txt (AI Readiness)</div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-title">Deep Link & Image Extraction</div>
-                    <details class="accordion">
-                        <summary>Internal Links (${data.links.internal_count} found)</summary>
-                        <div class="accordion-content">${renderList(data.links.internal_urls)}</div>
-                    </details>
-                    <details class="accordion">
-                        <summary>External Links (${data.links.external_count} found)</summary>
-                        <div class="accordion-content">${renderList(data.links.external_urls)}</div>
-                    </details>
-                    ${data.images.missing_alt_count === 0 ? `
-                        <div class="file-badge file-found" style="width:100%; border-radius:8px; display:block; text-align:center; box-sizing: border-box;">✓ No missing alt text found</div>
-                    ` : `
-                        <details class="accordion">
-                            <summary>Images Missing Alt Text (${data.images.missing_alt_count} found)</summary>
-                            <div class="accordion-content">${renderList(data.images.missing_alt_urls)}</div>
-                        </details>
-                    `}
-                </div>
-
-                <div class="card">
-                    <div class="card-title">Header Tags Architecture</div>
-                    <div style="margin-bottom: 20px;">
-                        <div style="font-weight: 600; background:#2563eb; color:white; display:inline-block; padding:2px 10px; border-radius:4px; font-size:12px; margin-bottom:10px;">H1 Tags (${data.content.h1_list.length})</div>
-                        ${data.content.h1_list.length ? data.content.h1_list.map((h, i) => `<div class="tag-box">${i+1}. ${h}</div>`).join('') : '<div class="tag-box" style="border-color:red;">Missing H1</div>'}
-                    </div>
-                    <div>
-                        <div style="font-weight: 600; background:#3b82f6; color:white; display:inline-block; padding:2px 10px; border-radius:4px; font-size:12px; margin-bottom:10px;">H2 Tags (${data.content.h2_list.length})</div>
-                        ${data.content.h2_list.length ? data.content.h2_list.map((h, i) => `<div class="tag-box">${i+1}. ${h}</div>`).join('') : '<div class="tag-box">No H2 tags found</div>'}
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-title">Keyword & Phrase Extraction</div>
-                    <div class="phrase-header">Primary Keywords</div>
-                    <div class="badge-container">${renderBadges(data.keywords.top_1)}</div>
-                    <div class="phrase-header">2-Word Combinations</div>
-                    <div class="badge-container">${renderBadges(data.keywords.top_2)}</div>
-                    <div class="phrase-header">3-Word Combinations</div>
-                    <div class="badge-container">${renderBadges(data.keywords.top_3)}</div>
-                    <div class="phrase-header">4-Word Combinations</div>
-                    <div class="badge-container">${renderBadges(data.keywords.top_4)}</div>
-                </div>
-            </div> `;
+                ${data.ai_suggestion ? `<div class="ai-placeholder" style="margin-bottom: 25px; background: linear-gradient(to right, #fdf4ff, #faf5ff);"><h3>✨ AI Content Rewriter</h3><div style="white-space: pre-wrap;">${data.ai_suggestion}</div></div>` : ''}
+                ${(data.issues.on_page.length > 0 || data.issues.technical.length > 0) ? `<div class="issues-list" style="margin-top: 25px;">${data.issues.on_page.length > 0 ? `<div class="issue-panel"><h3>⚠️ On-Page Action Items</h3><ul>${data.issues.on_page.map(i => `<li>${i}</li>`).join("")}</ul></div>` : ''}${data.issues.technical.length > 0 ? `<div class="issue-panel"><h3>⚙️ Technical Action Items</h3><ul>${data.issues.technical.map(i => `<li>${i}</li>`).join("")}</ul></div>` : ''}</div>` : '<div class="card" style="background:#ecfdf5; border-color:#a7f3d0; color:#065f46; text-align:center; font-weight:600; margin-top:25px;">🎉 Perfect! No severe SEO issues detected.</div>'}
+                <div class="card" style="margin-top: 25px;"><div class="card-title">Core Web Vitals Status</div><div class="cwv-subgrid"><div><div style="font-weight: 600; color: var(--text-muted); margin-bottom: 10px;">Mobile</div><div class="cwv-item"><b>LCP</b> <span>${data.performance.mobile.lcp || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.mobile.lcp_v, 'lcp')}"></span></span></div><div class="cwv-item"><b>CLS</b> <span>${data.performance.mobile.cls || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.mobile.cls_v, 'cls')}"></span></span></div><div class="cwv-item"><b>INP</b> <span>${data.performance.mobile.inp || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.mobile.inp_v, 'inp')}"></span></span></div></div><div><div style="font-weight: 600; color: var(--text-muted); margin-bottom: 10px;">Desktop</div><div class="cwv-item"><b>LCP</b> <span>${data.performance.desktop.lcp || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.desktop.lcp_v, 'lcp')}"></span></span></div><div class="cwv-item"><b>CLS</b> <span>${data.performance.desktop.cls || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.desktop.cls_v, 'cls')}"></span></span></div><div class="cwv-item"><b>INP</b> <span>${data.performance.desktop.inp || 'F'} <span class="cwv-badge" style="background: ${getMetricColor(data.performance.desktop.inp_v, 'inp')}"></span></span></div></div></div></div>
+                <div class="card"><div class="card-title">Page Overview ${data.js_rendered ? '<span style="font-size:12px; background:#f59e0b; color:white; padding:4px 8px; border-radius:4px; margin-left:10px;">JS Rendered</span>' : ''}</div><div class="metrics-grid"><div class="metric-box"><div><div class="metric-value">${data.links.internal_count}</div><div class="metric-name">Internal Links</div></div></div><div class="metric-box"><div><div class="metric-value">${data.links.external_count}</div><div class="metric-name">External Links</div></div></div><div class="metric-box"><div><div class="metric-value">${data.images.total}</div><div class="metric-name">Images</div></div></div><div class="metric-box"><div><div class="metric-value">${data.content.word_count}</div><div class="metric-name">Words Processed</div></div></div><div class="metric-box"><div><div class="metric-value">${data.server.load_time_seconds}s</div><div class="metric-name">Server Response</div></div></div><div class="metric-box"><div><div class="metric-value">${data.server.status_code}</div><div class="metric-name">HTTP Status</div></div></div></div></div>
+                <div class="card"><div class="card-title">Technical & Security Audits</div><div class="audit-grid"><div class="audit-item"><div class="audit-icon ${data.technical.https ? 'audit-pass' : 'audit-fail'}">${data.technical.https ? '✅' : '❌'}</div><div class="audit-details"><h4>SSL Checker and HTTPS</h4><p>${data.technical.https ? 'Website is successfully using HTTPS, a secure communication protocol.' : 'Warning: Website is not using HTTPS securely.'}</p></div></div><div class="audit-item"><div class="audit-icon ${data.technical.hsts ? 'audit-pass' : 'audit-fail'}">${data.technical.hsts ? '✅' : '❌'}</div><div class="audit-details"><h4>HSTS Test</h4><p>${data.technical.hsts ? 'Website is using Strict-Transport-Security to force secure connections.' : 'Website is not using the Strict-Transport-Security header.'}</p></div></div><div class="audit-item"><div class="audit-icon ${data.technical.html_size_kb <= 100 ? 'audit-pass' : 'audit-fail'}">${data.technical.html_size_kb <= 100 ? '✅' : '❌'}</div><div class="audit-details"><h4>HTML Page Size Test</h4><p>The size of this HTML document is <b>${data.technical.html_size_kb} Kb</b>.</p></div></div><div class="audit-item"><div class="audit-icon ${data.technical.has_schema ? 'audit-pass' : 'audit-fail'}">${data.technical.has_schema ? '✅' : '❌'}</div><div class="audit-details"><h4>Schema.org Structured Data</h4><p>${data.technical.has_schema ? 'Using JSON-LD or Microdata Schema.' : 'Missing Schema markup.'}</p></div></div><div class="audit-item"><div class="audit-icon ${data.technical.has_ga ? 'audit-pass' : 'audit-fail'}">${data.technical.has_ga ? '✅' : '❌'}</div><div class="audit-details"><h4>Google Analytics Test</h4><p>${data.technical.has_ga ? 'Google tracking scripts detected.' : 'No Google Analytics scripts detected.'}</p></div></div><div class="audit-item"><div class="audit-icon ${data.technical.has_favicon ? 'audit-pass' : 'audit-fail'}">${data.technical.has_favicon ? '✅' : '❌'}</div><div class="audit-details"><h4>Favicon Test</h4><p>${data.technical.has_favicon ? 'Valid favicon found.' : 'No favicon link tag found.'}</p></div></div><div class="audit-item"><div class="audit-icon ${data.technical.lang_attr ? 'audit-pass' : 'audit-fail'}">${data.technical.lang_attr ? '✅' : '❌'}</div><div class="audit-details"><h4>Language Attribute</h4><p>${data.technical.lang_attr ? `Page is using the Lang Attribute (${data.technical.lang_attr}).` : 'Missing HTML lang attribute.'}</p></div></div><div class="audit-item"><div class="audit-icon ${data.technical.has_hreflang ? 'audit-pass' : 'audit-fail'}">${data.technical.has_hreflang ? '✅' : '❌'}</div><div class="audit-details"><h4>Hreflang Usage</h4><p>${data.technical.has_hreflang ? 'Page makes use of Hreflang attributes.' : 'Page is not making use of Hreflang attributes.'}</p></div></div><div class="audit-item"><div class="audit-icon ${data.technical.responsive_images_pass ? 'audit-pass' : 'audit-fail'}">${data.technical.responsive_images_pass ? '✅' : '❌'}</div><div class="audit-details"><h4>Responsive Image Test</h4><p>${data.technical.responsive_images_pass ? 'Images are properly sized.' : 'Warning: Serving images larger than needed.'}</p></div></div><div class="audit-item"><div class="audit-icon ${data.technical.canonical_pass ? 'audit-pass' : 'audit-fail'}">${data.technical.canonical_pass ? '✅' : '❌'}</div><div class="audit-details"><h4>Canonical Tag Test</h4><p>${data.technical.canonical_pass ? 'Website is using the canonical link tag.' : 'Missing canonical link tag.'}</p></div></div><div class="audit-item"><div class="audit-icon ${data.technical.noindex_pass ? 'audit-pass' : 'audit-fail'}">${data.technical.noindex_pass ? '✅' : '❌'}</div><div class="audit-details"><h4>Noindex Tag Test</h4><p>${data.technical.noindex_pass ? 'Page does not use noindex. It can be indexed.' : 'Blocked by noindex tag.'}</p></div></div><div class="audit-item"><div class="audit-icon ${data.technical.www_resolve ? 'audit-pass' : 'audit-fail'}">${data.technical.www_resolve ? '✅' : '❌'}</div><div class="audit-details"><h4>URL Canonicalization</h4><p>${data.technical.www_resolve ? 'WWW and non-WWW correctly resolve.' : 'Warning: WWW/non-WWW do not redirect.'}</p></div></div></div></div>
+                <div class="card"><div class="card-title">Google SERP Simulator</div><div class="serp-preview"><div class="serp-url">${url}</div><div class="serp-title">${data.content.title}</div><div class="serp-desc">${data.content.meta_description}</div></div><div class="char-check-block"><div><div class="card-title" style="font-size: 15px; margin-bottom: 5px;">Website Used Meta Title</div><span class="meta-website-used">${data.content.title}</span><div class="char-status ${data.content.title_len > 10 && data.content.title_len <= 60 ? 'char-ok' : 'char-error'}"><div class="char-val">${data.content.title_len}</div>Title Characters Used (Optimal: 50-60)</div></div><div><div class="card-title" style="font-size: 15px; margin-bottom: 5px;">Website Used Meta Description</div><span class="meta-website-used">${data.content.meta_description}</span><div class="char-status ${data.content.meta_desc_len > 50 && data.content.meta_desc_len <= 160 ? 'char-ok' : 'char-error'}"><div class="char-val">${data.content.meta_desc_len}</div>Description Characters Used (Optimal: 150-160)</div></div></div></div>
+                <div class="card"><div class="card-title">Social Media Preview</div><div class="social-preview-container"><div class="social-table"><div><b>og:title</b> <span>${data.og_tags.title || 'Missing'}</span></div><div><b>og:desc</b> <span>${data.og_tags.description || 'Missing'}</span></div><div><b>og:image</b> <span>${data.og_tags.image || 'Missing'}</span></div></div><div class="social-card-wrapper">${data.og_tags.image ? `<img src="${data.og_tags.image}" class="social-img">` : '<div class="social-img" style="display:flex;align-items:center;justify-content:center;color:#94a3b8;">No Image Provided</div>'}<div class="social-text"><h4>${data.og_tags.title || data.content.title}</h4><p>${data.og_tags.description || data.content.meta_description}</p></div></div></div></div>
+                <div class="card"><div class="card-title">Core Site Files Status</div><div><div class="file-badge ${data.site_files.robots ? 'file-found' : 'file-missing'}">${data.site_files.robots ? '✓' : '✗'} robots.txt</div><div class="file-badge ${data.site_files.sitemap ? 'file-found' : 'file-missing'}">${data.site_files.sitemap ? '✓' : '✗'} sitemap.xml</div><div class="file-badge ${data.site_files.llms ? 'file-found' : 'file-missing'}">${data.site_files.llms ? '✓' : '✗'} llms.txt (AI Readiness)</div></div></div>
+                <div class="card"><div class="card-title">Deep Link & Image Extraction</div><details class="accordion"><summary>Internal Links (${data.links.internal_count} found)</summary><div class="accordion-content">${renderList(data.links.internal_urls)}</div></details><details class="accordion"><summary>External Links (${data.links.external_count} found)</summary><div class="accordion-content">${renderList(data.links.external_urls)}</div></details>${data.images.missing_alt_count === 0 ? `<div class="file-badge file-found" style="width:100%; border-radius:8px; display:block; text-align:center; box-sizing: border-box;">✓ No missing alt text found</div>` : `<details class="accordion"><summary>Images Missing Alt Text (${data.images.missing_alt_count} found)</summary><div class="accordion-content">${renderList(data.images.missing_alt_urls)}</div></details>`}</div>
+                <div class="card"><div class="card-title">Header Tags Architecture</div><div style="margin-bottom: 20px;"><div style="font-weight: 600; background:#2563eb; color:white; display:inline-block; padding:2px 10px; border-radius:4px; font-size:12px; margin-bottom:10px;">H1 Tags (${data.content.h1_list.length})</div>${data.content.h1_list.length ? data.content.h1_list.map((h, i) => `<div class="tag-box">${i+1}. ${h}</div>`).join('') : '<div class="tag-box" style="border-color:red;">Missing H1</div>'}</div><div><div style="font-weight: 600; background:#3b82f6; color:white; display:inline-block; padding:2px 10px; border-radius:4px; font-size:12px; margin-bottom:10px;">H2 Tags (${data.content.h2_list.length})</div>${data.content.h2_list.length ? data.content.h2_list.map((h, i) => `<div class="tag-box">${i+1}. ${h}</div>`).join('') : '<div class="tag-box">No H2 tags found</div>'}</div></div>
+                <div class="card"><div class="card-title">Keyword & Phrase Extraction</div><div class="phrase-header">Primary Keywords</div><div class="badge-container">${renderBadges(data.keywords.top_1)}</div><div class="phrase-header">2-Word Combinations</div><div class="badge-container">${renderBadges(data.keywords.top_2)}</div><div class="phrase-header">3-Word Combinations</div><div class="badge-container">${renderBadges(data.keywords.top_3)}</div><div class="phrase-header">4-Word Combinations</div><div class="badge-container">${renderBadges(data.keywords.top_4)}</div></div>
+            </div>
+        `;
     }
 
     function renderContent(data, url) {
         let contentScoreColor = getScoreColor(data.content_score);
-        
         document.getElementById('out').innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                <h2 style="margin: 0; color: var(--text-main); font-size: 1.5rem;">Content Checker Results</h2>
-                <button class="pdf-btn" onclick="downloadPDF('${url}')">Download PDF Report</button>
-            </div>
-            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;"><h2 style="margin: 0; color: var(--text-main); font-size: 1.5rem;">Content Checker Results</h2><button class="pdf-btn" onclick="downloadPDF('${url}')">Download PDF Report</button></div>
             <div id="report-container" style="background: var(--bg-color); padding: 10px;">
-                <div id="pdf-header" class="pdf-header">
-                    <h2 style="color:var(--purple)">Content Checker</h2>
-                    <p>Content Audit generated for <b>${url}</b></p>
-                </div>
-
+                <div id="pdf-header" class="pdf-header"><h2 style="color:var(--purple)">Content Checker</h2><p>Content Audit generated for <b>${url}</b></p></div>
                 <div class="scores-grid">
-                    <div class="card score-card" style="margin-bottom:0;">
-                        <div class="score-circle" style="background: conic-gradient(${contentScoreColor} ${data.content_score}%, #e2e8f0 0);">
-                            <span style="color: ${contentScoreColor}">${data.content_score}</span>
-                        </div>
-                        <div class="score-label">Content Score</div>
-                        <div class="score-sublabel">Overall Quality</div>
-                    </div>
-                    <div class="card score-card" style="margin-bottom:0;">
-                        <div style="font-size: 32px; font-weight:700; color:var(--purple); margin-bottom:10px;">${data.word_count}</div>
-                        <div class="score-label">Total Words</div>
-                    </div>
-                    <div class="card score-card" style="margin-bottom:0;">
-                        <div style="font-size: 24px; font-weight:700; color:var(--secondary); margin-bottom:10px;">${data.readability.level}</div>
-                        <div class="score-label">Readability Level</div>
-                        <div class="score-sublabel">Flesch Score: ${data.readability.score}</div>
-                    </div>
-                    <div class="card score-card" style="margin-bottom:0;">
-                        <div class="intent-box">${data.intent.primary_intent}</div>
-                        <div class="score-label" style="margin-top:15px;">Search Intent</div>
-                    </div>
+                    <div class="card score-card" style="margin-bottom:0;"><div class="score-circle" style="background: conic-gradient(${contentScoreColor} ${data.content_score}%, #e2e8f0 0);"><span style="color: ${contentScoreColor}">${data.content_score}</span></div><div class="score-label">Content Score</div><div class="score-sublabel">Overall Quality</div></div>
+                    <div class="card score-card" style="margin-bottom:0;"><div style="font-size: 32px; font-weight:700; color:var(--purple); margin-bottom:10px;">${data.word_count}</div><div class="score-label">Total Words</div></div>
+                    <div class="card score-card" style="margin-bottom:0;"><div style="font-size: 24px; font-weight:700; color:var(--secondary); margin-bottom:10px;">${data.readability.level}</div><div class="score-label">Readability Level</div><div class="score-sublabel">Flesch Score: ${data.readability.score}</div></div>
+                    <div class="card score-card" style="margin-bottom:0;"><div class="intent-box">${data.intent.primary_intent}</div><div class="score-label" style="margin-top:15px;">Search Intent</div></div>
                 </div>
-
-                ${data.ai_suggestion ? `
-                <div class="ai-placeholder" style="margin-bottom: 25px; background: linear-gradient(to right, #fdf4ff, #faf5ff);">
-                    <h3>✨ AI Content Strategy</h3>
-                    <div style="white-space: pre-wrap;">${data.ai_suggestion}</div>
-                </div>
-                ` : ''}
-
-                <div class="card">
-                    <div class="card-title">E-E-A-T & Trust Signals</div>
-                    <div class="audit-grid">
-                        <div class="audit-item"><div class="audit-icon">${data.eeat.has_author ? '✅' : '⚠️'}</div><div class="audit-details"><h4>Author Entity</h4><p>${data.eeat.has_author ? 'Author tags or classes detected.' : 'No clear author identified.'}</p></div></div>
-                        <div class="audit-item"><div class="audit-icon">${data.eeat.has_contact_or_about ? '✅' : '⚠️'}</div><div class="audit-details"><h4>Business Transparency</h4><p>${data.eeat.has_contact_or_about ? 'Contact/About pages linked.' : 'Missing trust pages.'}</p></div></div>
-                        <div class="audit-item"><div class="audit-icon">${data.eeat.has_external_links ? '✅' : '⚠️'}</div><div class="audit-details"><h4>External Citations</h4><p>${data.eeat.has_external_links ? 'Page links to external sources.' : 'No outbound links found.'}</p></div></div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-title">Heading Hierarchy (H1 - H6)</div>
-                    <div style="display:flex; flex-direction:column; gap:10px;">
-                        ${Object.keys(data.headings).map(tag => {
-                            if(data.headings[tag].length === 0) return '';
-                            return `
-                            <div>
-                                <span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:12px; font-weight:bold; margin-right:10px; display:inline-block; width:25px; text-align:center;">${tag.toUpperCase()}</span>
-                                <span style="font-size:14px; color:var(--text-muted);">${data.headings[tag].length} tags found</span>
-                                <div style="margin-top:5px; padding-left:45px;">
-                                    ${data.headings[tag].slice(0, 5).map(h => `<div style="font-size:13px; margin-bottom:3px;">• ${h}</div>`).join('')}
-                                    ${data.headings[tag].length > 5 ? `<div style="font-size:12px; color:var(--primary); font-style:italic;">+ ${data.headings[tag].length - 5} more...</div>` : ''}
-                                </div>
-                            </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-title">NLP & Keyword Density Analysis</div>
-                    <div class="phrase-header">Primary Content Keywords</div>
-                    <div class="badge-container">${renderBadges(data.keywords.top_1)}</div>
-                    <div class="phrase-header">LSI / Contextual Phrases (2-3 Words)</div>
-                    <div class="badge-container">${renderBadges(data.keywords.top_2)}</div>
-                    <div class="badge-container">${renderBadges(data.keywords.top_3)}</div>
-                </div>
-
-                <div class="card">
-                    <div class="card-title">Intent Optimization Tips</div>
-                    <div style="background: #f8fafc; padding: 15px; border-radius: 8px; font-size: 14px; border-left: 4px solid var(--purple);">
-                        Based on the primary intent (<b>${data.intent.primary_intent}</b>), ensure this page includes:
-                        <ul style="margin-top: 10px; margin-bottom: 0;">
-                            ${data.intent.tips.map(tip => `<li>${tip}</li>`).join('')}
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-title">AI & Plagiarism Checks</div>
-                    <div class="audit-grid">
-                        <div class="audit-item">
-                            <div class="audit-icon">🔍</div>
-                            <div class="audit-details">
-                                <h4>Heuristic Duplicate Content</h4>
-                                <p>Structural repetition score: <b>${data.ai_plagiarism.heuristic_repetition_score}%</b>. (Scores over 20% suggest heavy boilerplate).</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                ${data.ai_suggestion ? `<div class="ai-placeholder" style="margin-bottom: 25px; background: linear-gradient(to right, #fdf4ff, #faf5ff);"><h3>✨ AI Content Strategy</h3><div style="white-space: pre-wrap;">${data.ai_suggestion}</div></div>` : ''}
+                <div class="card"><div class="card-title">E-E-A-T & Trust Signals</div><div class="audit-grid"><div class="audit-item"><div class="audit-icon">${data.eeat.has_author ? '✅' : '⚠️'}</div><div class="audit-details"><h4>Author Entity</h4><p>${data.eeat.has_author ? 'Author tags or classes detected.' : 'No clear author identified.'}</p></div></div><div class="audit-item"><div class="audit-icon">${data.eeat.has_contact_or_about ? '✅' : '⚠️'}</div><div class="audit-details"><h4>Business Transparency</h4><p>${data.eeat.has_contact_or_about ? 'Contact/About pages linked.' : 'Missing trust pages.'}</p></div></div><div class="audit-item"><div class="audit-icon">${data.eeat.has_external_links ? '✅' : '⚠️'}</div><div class="audit-details"><h4>External Citations</h4><p>${data.eeat.has_external_links ? 'Page links to external sources.' : 'No outbound links found.'}</p></div></div></div></div>
+                <div class="card"><div class="card-title">Heading Hierarchy (H1 - H6)</div><div style="display:flex; flex-direction:column; gap:10px;">${Object.keys(data.headings).map(tag => { if(data.headings[tag].length === 0) return ''; return `<div><span style="background:var(--primary); color:white; padding:2px 8px; border-radius:4px; font-size:12px; font-weight:bold; margin-right:10px; display:inline-block; width:25px; text-align:center;">${tag.toUpperCase()}</span><span style="font-size:14px; color:var(--text-muted);">${data.headings[tag].length} tags found</span><div style="margin-top:5px; padding-left:45px;">${data.headings[tag].slice(0, 5).map(h => `<div style="font-size:13px; margin-bottom:3px;">• ${h}</div>`).join('')}${data.headings[tag].length > 5 ? `<div style="font-size:12px; color:var(--primary); font-style:italic;">+ ${data.headings[tag].length - 5} more...</div>` : ''}</div></div>`; }).join('')}</div></div>
+                <div class="card"><div class="card-title">NLP & Keyword Density Analysis</div><div class="phrase-header">Primary Content Keywords</div><div class="badge-container">${renderBadges(data.keywords.top_1)}</div><div class="phrase-header">LSI / Contextual Phrases (2-3 Words)</div><div class="badge-container">${renderBadges(data.keywords.top_2)}</div><div class="badge-container">${renderBadges(data.keywords.top_3)}</div></div>
+                <div class="card"><div class="card-title">Intent Optimization Tips</div><div style="background: #f8fafc; padding: 15px; border-radius: 8px; font-size: 14px; border-left: 4px solid var(--purple);">Based on the primary intent (<b>${data.intent.primary_intent}</b>), ensure this page includes:<ul style="margin-top: 10px; margin-bottom: 0;">${data.intent.tips.map(tip => `<li>${tip}</li>`).join('')}</ul></div></div>
+                <div class="card"><div class="card-title">AI & Plagiarism Checks</div><div class="audit-grid"><div class="audit-item"><div class="audit-icon">🔍</div><div class="audit-details"><h4>Heuristic Duplicate Content</h4><p>Structural repetition score: <b>${data.ai_plagiarism.heuristic_repetition_score}%</b>. (Scores over 20% suggest heavy boilerplate).</p></div></div></div></div>
             </div>
         `;
     }
-    // Initialize default tab
+    
+    // Custom JS Initialization
+    {{ CUSTOM_JS }}
     switchTab('seo');
     </script>
 </body>
 </html>
 """
 
-# --- ADMIN TEMPLATE ---
+# --- VISUAL ADMIN CMS TEMPLATE ---
 ADMIN_HTML = """
 <!DOCTYPE html>
 <html>
 <head>
-    <title>SEO Suite Admin Panel</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.36.2/ace.js"></script>
+    <title>Visual CMS Admin</title>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        .sidebar { width: 260px; background: #1e293b; padding: 25px; border-right: 1px solid #334155; display: flex; flex-direction: column; }
-        .sidebar h2 { margin-top: 0; margin-bottom: 30px; font-size: 22px; color: #f8fafc; display: flex; align-items: center; gap: 10px; }
-        .nav-link { display: block; padding: 12px 15px; margin-bottom: 8px; color: #cbd5e1; text-decoration: none; cursor: pointer; border-radius: 6px; font-weight: 500; transition: all 0.2s; }
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+        body { font-family: 'Poppins', sans-serif; background: #0f172a; color: #f8fafc; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        .sidebar { width: 260px; background: #1e293b; padding: 25px; border-right: 1px solid #334155; display: flex; flex-direction: column; box-shadow: 2px 0 10px rgba(0,0,0,0.2); z-index: 10; }
+        .sidebar h2 { margin-top: 0; margin-bottom: 30px; font-size: 20px; font-weight: 600; color: #f8fafc; display: flex; align-items: center; gap: 10px; }
+        .nav-link { display: block; padding: 12px 15px; margin-bottom: 8px; color: #cbd5e1; text-decoration: none; cursor: pointer; border-radius: 8px; font-weight: 500; font-size: 14px; transition: all 0.2s; }
         .nav-link:hover { background: #334155; color: white; }
         .nav-link.active { background: #3b82f6; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .content { flex-grow: 1; display: flex; flex-direction: column; }
-        #editor { flex-grow: 1; width: 100%; font-size: 15px; }
-        .header { padding: 15px 25px; background: #1e293b; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
-        .btn-save { background: #10b981; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: background 0.3s; }
+        
+        .content { flex-grow: 1; display: flex; flex-direction: column; background: #0f172a; overflow-y: auto;}
+        .header { padding: 15px 30px; background: #1e293b; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 5; }
+        .btn-save { background: #10b981; color: white; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; transition: background 0.3s; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2); }
         .btn-save:hover { background: #059669; }
-        .btn-view { background: #3b82f6; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; text-decoration: none; margin-right: 10px;}
-        .btn-view:hover { background: #2563eb; }
-        .warning-box { margin-top: auto; padding: 15px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 6px; font-size: 12px; color: #fcd34d; line-height: 1.5; }
+        .btn-view { background: transparent; color: #94a3b8; border: 1px solid #334155; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 14px; text-decoration: none; margin-right: 15px; transition: all 0.3s; }
+        .btn-view:hover { color: white; border-color: #cbd5e1; }
+        
+        .workspace { padding: 30px; flex-grow: 1; display: none; max-width: 900px; margin: 0 auto; width: 100%; box-sizing: border-box;}
+        .workspace.active { display: block; }
+        
+        /* GUI Tools Manager */
+        .tools-list { display: flex; flex-direction: column; gap: 15px; }
+        .tool-row { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s;}
+        .tool-row:hover { border-color: #475569; }
+        .sortable-ghost { opacity: 0.4; background: #334155; border: 2px dashed #3b82f6; }
+        
+        .tool-info { display: flex; align-items: center; gap: 20px; flex-grow: 1;}
+        .drag-handle { cursor: grab; font-size: 20px; color: #64748b; padding: 0 10px; }
+        .drag-handle:active { cursor: grabbing; }
+        .tool-icon-bg { background: #334155; min-width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-size: 24px; }
+        .tool-text h4 { margin: 0 0 5px 0; font-size: 16px; color: white; }
+        .tool-text p { margin: 0; font-size: 13px; color: #94a3b8; max-width: 450px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tool-actions { display: flex; gap: 10px; }
+        .btn-icon { background: #334155; border: none; color: white; width: 35px; height: 35px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .btn-icon:hover { background: #475569; }
+        .btn-icon.danger:hover { background: #ef4444; }
+        
+        .add-tool-btn { background: transparent; border: 2px dashed #334155; color: #cbd5e1; width: 100%; padding: 20px; border-radius: 12px; font-family: 'Poppins'; font-size: 15px; font-weight: 500; cursor: pointer; transition: all 0.3s; margin-top: 20px; }
+        .add-tool-btn:hover { border-color: #3b82f6; color: #3b82f6; background: rgba(59, 130, 246, 0.05); }
+        
+        /* Visual Theme Editor */
+        .settings-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 25px; margin-bottom: 25px; }
+        .settings-card h3 { margin-top: 0; margin-bottom: 20px; font-size: 18px; border-bottom: 1px solid #334155; padding-bottom: 10px;}
+        
+        .color-picker-group { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; background: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid #334155;}
+        .color-picker-group label { font-size: 14px; font-weight: 500; }
+        .color-picker-group input[type="color"] { -webkit-appearance: none; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; padding: 0; background: transparent;}
+        .color-picker-group input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        .color-picker-group input[type="color"]::-webkit-color-swatch { border: 2px solid #cbd5e1; border-radius: 50%; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 13px; color: #cbd5e1; margin-bottom: 8px; font-weight: 500;}
+        .form-control { width: 100%; background: #0f172a; border: 1px solid #334155; color: white; padding: 12px 15px; border-radius: 8px; font-family: 'Poppins'; font-size: 14px; box-sizing: border-box; outline: none; transition: border-color 0.3s;}
+        .form-control:focus { border-color: #3b82f6; }
+
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100; }
+        .modal { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 30px; width: 500px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); }
+        .modal h3 { margin-top: 0; margin-bottom: 20px; color: white; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+        .btn-cancel { background: transparent; border: 1px solid #475569; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="sidebar">
-        <h2><span>⚙️</span> CMS Admin</h2>
-        <div class="nav-link active" onclick="loadTab('tools')">🔧 Tools Arrangement (JSON)</div>
-        <div class="nav-link" onclick="loadTab('css')">🎨 Global Styles (CSS)</div>
-        <div class="nav-link" onclick="loadTab('js')">⚡ Custom Logic (JS)</div>
-        
-        <div class="warning-box">
-            <b>Render Hosting Note:</b> Changes are saved to <code>seo_config.json</code>. If you are on Render's free tier without a Persistent Disk attached, these changes will reset when the server goes to sleep.
-        </div>
+        <h2>CMS Admin</h2>
+        <div class="nav-link active" onclick="switchAdminTab('tools')">🔧 Manage Tools</div>
+        <div class="nav-link" onclick="switchAdminTab('theme')">🎨 Theme & Branding</div>
     </div>
+    
     <div class="content">
         <div class="header">
-            <h3 id="editor-title" style="margin:0; font-weight: 500;">Editing: Tools Arrangement (JSON)</h3>
+            <h3 id="editor-title" style="margin:0; font-weight: 500;">Tools Dashboard</h3>
             <div>
-                <a href="/" target="_blank" class="btn-view">View Live Site ↗</a>
-                <button class="btn-save" onclick="saveConfig()">Save Changes</button>
+                <a href="/" target="_blank" class="btn-view">Live Site ↗</a>
+                <button class="btn-save" onclick="saveConfig()">Save All Changes</button>
             </div>
         </div>
-        <div id="editor"></div>
+        
+        <div id="ws-tools" class="workspace active">
+            <p style="color: #94a3b8; font-size: 14px; margin-top: 0; margin-bottom: 20px;">Drag and drop the handles (☰) to rearrange how tools appear on your live site.</p>
+            <div id="tools-list-container" class="tools-list"></div>
+            <button class="add-tool-btn" onclick="openModal(-1)">+ Add Custom Tool</button>
+        </div>
+        
+        <div id="ws-theme" class="workspace">
+            <div class="settings-card">
+                <h3>Global Colors</h3>
+                <div class="color-picker-group">
+                    <label>Primary Theme Color</label>
+                    <input type="color" id="theme-primary">
+                </div>
+                <div class="color-picker-group">
+                    <label>Secondary Gradient Color</label>
+                    <input type="color" id="theme-secondary">
+                </div>
+                <div class="color-picker-group">
+                    <label>Accent Action Color (Buttons)</label>
+                    <input type="color" id="theme-accent">
+                </div>
+            </div>
+
+            <div class="settings-card">
+                <h3>Site Branding</h3>
+                <div class="form-group">
+                    <label>Application Title</label>
+                    <input type="text" id="brand-title" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Author / Tagline</label>
+                    <input type="text" id="brand-author" class="form-control">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="toolModal">
+        <div class="modal">
+            <h3 id="modal-title">Edit Tool</h3>
+            <input type="hidden" id="tool-index">
+            <div class="form-group">
+                <label>Tool Routing ID (e.g., sitemap)</label>
+                <input type="text" id="tool-id" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Emoji Icon</label>
+                <input type="text" id="tool-icon" class="form-control" style="width: 80px; text-align:center;">
+            </div>
+            <div class="form-group">
+                <label>Display Title</label>
+                <input type="text" id="tool-title" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="tool-desc" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn-save" onclick="saveToolForm()">Done</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        let currentConfig = {};
-        let currentTab = 'tools';
-        const editor = ace.edit("editor");
-        editor.setTheme("ace/theme/one_dark");
+        let currentConfig = { branding: {}, theme: {}, tools: [] };
         
-        async function fetchConfig() {
+        async function init() {
             try {
                 let res = await fetch('/api/admin/config');
                 currentConfig = await res.json();
-                loadTab('tools');
-            } catch(e) {
-                alert("Failed to load configuration.");
+                
+                // Populate Theme Forms
+                document.getElementById('theme-primary').value = currentConfig.theme.primary || "#3b82f6";
+                document.getElementById('theme-secondary').value = currentConfig.theme.secondary || "#0ea5e9";
+                document.getElementById('theme-accent').value = currentConfig.theme.accent || "#f97316";
+                document.getElementById('brand-title').value = currentConfig.branding.title || "SEO Analyzer Pro";
+                document.getElementById('brand-author').value = currentConfig.branding.author || "Built by Yousaf Saneen";
+                
+                renderToolsList();
+                
+                // Initialize Drag and Drop Physics
+                new Sortable(document.getElementById('tools-list-container'), {
+                    animation: 150,
+                    handle: '.drag-handle',
+                    ghostClass: 'sortable-ghost',
+                    onEnd: function (evt) {
+                        const item = currentConfig.tools.splice(evt.oldIndex, 1)[0];
+                        currentConfig.tools.splice(evt.newIndex, 0, item);
+                    },
+                });
+
+            } catch(e) { alert("Failed to load configuration."); }
+        }
+
+        function switchAdminTab(tab) {
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('.workspace').forEach(el => el.classList.remove('active'));
+            document.getElementById('ws-' + tab).classList.add('active');
+            
+            if(tab === 'tools') document.getElementById('editor-title').innerText = "Tools Dashboard";
+            if(tab === 'theme') document.getElementById('editor-title').innerText = "Visual Theme & Branding";
+        }
+
+        function renderToolsList() {
+            const container = document.getElementById('tools-list-container');
+            container.innerHTML = '';
+            currentConfig.tools.forEach((t, idx) => {
+                container.innerHTML += `
+                    <div class="tool-row" data-id="${t.id}">
+                        <div class="tool-info">
+                            <div class="drag-handle" title="Drag to reorder">☰</div>
+                            <div class="tool-icon-bg">${t.icon}</div>
+                            <div class="tool-text">
+                                <h4>${t.title}</h4>
+                                <p>${t.desc}</p>
+                            </div>
+                        </div>
+                        <div class="tool-actions">
+                            <button class="btn-icon" title="Edit" onclick="openModal(${idx})">✎</button>
+                            <button class="btn-icon danger" title="Delete" onclick="deleteTool(${idx})">🗑</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function deleteTool(index) {
+            if(confirm("Are you sure you want to remove this tool from the dashboard?")) {
+                currentConfig.tools.splice(index, 1);
+                renderToolsList();
             }
         }
 
-        function loadTab(tab) {
-            // Save current tab content back to object before switching
-            if(currentTab === 'tools') {
-                try { currentConfig.tools = JSON.parse(editor.getValue()); } catch(e) { }
-            } else if(currentTab === 'css') {
-                currentConfig.custom_css = editor.getValue();
-            } else if(currentTab === 'js') {
-                currentConfig.custom_js = editor.getValue();
+        function openModal(index) {
+            document.getElementById('tool-index').value = index;
+            if(index >= 0) {
+                let t = currentConfig.tools[index];
+                document.getElementById('modal-title').innerText = "Edit Tool";
+                document.getElementById('tool-id').value = t.id || t.mode;
+                document.getElementById('tool-icon').value = t.icon;
+                document.getElementById('tool-title').value = t.title;
+                document.getElementById('tool-desc').value = t.desc;
+            } else {
+                document.getElementById('modal-title').innerText = "Add New Tool";
+                document.getElementById('tool-id').value = "";
+                document.getElementById('tool-icon').value = "✨";
+                document.getElementById('tool-title').value = "";
+                document.getElementById('tool-desc').value = "";
             }
+            document.getElementById('toolModal').style.display = 'flex';
+        }
 
-            currentTab = tab;
-            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-            event.target.classList.add('active');
+        function closeModal() { document.getElementById('toolModal').style.display = 'none'; }
 
-            if(tab === 'tools') {
-                document.getElementById('editor-title').innerText = "Editing: Tools Arrangement (JSON)";
-                editor.session.setMode("ace/mode/json");
-                editor.setValue(JSON.stringify(currentConfig.tools, null, 4), -1);
-            } else if(tab === 'css') {
-                document.getElementById('editor-title').innerText = "Editing: Global Styles (CSS)";
-                editor.session.setMode("ace/mode/css");
-                editor.setValue(currentConfig.custom_css || "", -1);
-            } else if(tab === 'js') {
-                document.getElementById('editor-title').innerText = "Editing: Custom Logic (JS)";
-                editor.session.setMode("ace/mode/javascript");
-                editor.setValue(currentConfig.custom_js || "", -1);
-            }
+        function saveToolForm() {
+            let idx = parseInt(document.getElementById('tool-index').value);
+            let toolData = {
+                id: document.getElementById('tool-id').value.trim(),
+                mode: document.getElementById('tool-id').value.trim(), 
+                icon: document.getElementById('tool-icon').value,
+                title: document.getElementById('tool-title').value.trim(),
+                desc: document.getElementById('tool-desc').value.trim()
+            };
+            if(!toolData.id || !toolData.title) { alert("ID and Title are required."); return; }
+            if(idx >= 0) currentConfig.tools[idx] = toolData;
+            else currentConfig.tools.push(toolData);
+            closeModal();
+            renderToolsList();
         }
 
         async function saveConfig() {
-            // Save current editor state
-            if(currentTab === 'tools') {
-                try { 
-                    currentConfig.tools = JSON.parse(editor.getValue()); 
-                } catch(e) { 
-                    alert("Invalid JSON format! Please fix syntax errors before saving."); 
-                    return; 
-                }
-            } else if(currentTab === 'css') {
-                currentConfig.custom_css = editor.getValue();
-            } else if(currentTab === 'js') {
-                currentConfig.custom_js = editor.getValue();
-            }
+            // Pull data from Visual UI forms
+            currentConfig.theme.primary = document.getElementById('theme-primary').value;
+            currentConfig.theme.secondary = document.getElementById('theme-secondary').value;
+            currentConfig.theme.accent = document.getElementById('theme-accent').value;
+            currentConfig.branding.title = document.getElementById('brand-title').value;
+            currentConfig.branding.author = document.getElementById('brand-author').value;
 
+            let btn = document.querySelector('.btn-save');
+            btn.innerText = "Saving...";
+            
             let res = await fetch('/api/admin/config', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -1320,13 +915,15 @@ ADMIN_HTML = """
             });
             
             if(res.ok) {
-                alert('Saved successfully! Click "View Live Site" to see changes.');
+                btn.innerText = "Saved Successfully ✓";
+                setTimeout(() => btn.innerText = "Save All Changes", 2000);
             } else {
-                alert('Failed to save configuration. Check server logs.');
+                alert('Failed to save configuration.');
+                btn.innerText = "Save All Changes";
             }
         }
 
-        fetchConfig();
+        init();
     </script>
 </body>
 </html>
@@ -1339,9 +936,19 @@ def home():
     # Load dynamic config
     config = load_config()
     
-    # Inject dynamic content into HTML template
-    html = PUBLIC_HTML.replace("{{ CUSTOM_CSS }}", config.get("custom_css", ""))
-    html = html.replace("{{ TOOLS_JSON }}", json.dumps(config.get("tools", [])))
+    # Safely extract formatting data
+    theme = config.get("theme", {})
+    branding = config.get("branding", {})
+    
+    # Inject variables into HTML template
+    html = PUBLIC_HTML.replace("{{ TOOLS_JSON }}", json.dumps(config.get("tools", [])))
+    html = html.replace("{{ BRAND_TITLE }}", branding.get("title", "SEO Analyzer Pro"))
+    html = html.replace("{{ BRAND_AUTHOR }}", branding.get("author", "Built by Yousaf Saneen"))
+    html = html.replace("{{ THEME_PRIMARY }}", theme.get("primary", "#3b82f6"))
+    html = html.replace("{{ THEME_SECONDARY }}", theme.get("secondary", "#0ea5e9"))
+    html = html.replace("{{ THEME_ACCENT }}", theme.get("accent", "#f97316"))
+    html = html.replace("{{ CUSTOM_JS }}", config.get("custom_js", ""))
+    
     return html
 
 @app.get("/admin", response_class=HTMLResponse)
